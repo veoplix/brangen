@@ -13,6 +13,7 @@
             font-family: 'Space Grotesk', sans-serif;
             background-color: #0f172a;
             color: #e2e8f0;
+            background-image: radial-gradient(circle at top, rgba(99, 102, 241, 0.14), transparent 32%), linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 1));
         }
 
         .glass-panel {
@@ -24,22 +25,23 @@
 
         .gradient-text {
             background: linear-gradient(to right, #818cf8, #c084fc, #f472b6);
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         /* Custom scrollbar for the results area */
-        #resultsGrid::-webkit-scrollbar {
+        .scroll-area::-webkit-scrollbar {
             width: 6px;
         }
-        #resultsGrid::-webkit-scrollbar-track {
+        .scroll-area::-webkit-scrollbar-track {
             background: rgba(15, 23, 42, 0.5); 
         }
-        #resultsGrid::-webkit-scrollbar-thumb {
+        .scroll-area::-webkit-scrollbar-thumb {
             background: #334155; 
             border-radius: 4px;
         }
-        #resultsGrid::-webkit-scrollbar-thumb:hover {
+        .scroll-area::-webkit-scrollbar-thumb:hover {
             background: #475569; 
         }
 
@@ -47,29 +49,375 @@
             border: 2px solid #f3f3f3;
             border-top: 2px solid #818cf8;
             border-radius: 50%;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             animation: spin 1s linear infinite;
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        .result-card {
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            padding: 0.85rem;
+            border-radius: 1rem;
+            gap: 0.55rem;
+        }
+
+        .result-main {
+            min-width: 0;
+            width: calc(50% - 0.275rem);
+            display: flex;
+            flex-direction: column;
+        }
+
         .btn-icon {
-            @apply p-1.5 rounded-md hover:bg-white/10 transition-all text-slate-400 hover:text-indigo-400 cursor-pointer flex flex-col items-center gap-0.5;
+            padding: 0.25rem 0.3rem;
+            border-radius: 0.3rem;
+            transition: all 0.2s ease;
+            color: #94a3b8;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.05rem;
+            min-width: 28px;
+        }
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #818cf8;
         }
         
         .lang-tag {
-            font-size: 0.6rem;
+            font-size: 0.52rem;
             font-weight: 700;
             opacity: 0.7;
+            letter-spacing: 0.04em;
         }
 
         /* Mood Button Styling */
         .mood-btn {
-            @apply p-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-indigo-400 hover:border-indigo-500/50 transition-all flex items-center justify-center relative group;
+            padding: 0.6rem;
+            border-radius: 0.65rem;
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .mood-btn:hover {
+            color: #818cf8;
+            border-color: rgba(99, 102, 241, 0.5);
         }
         .mood-btn.active {
-            @apply bg-indigo-600/20 border-indigo-500 text-indigo-400 shadow-[0_0_15px_-3px_rgba(99,102,241,0.3)];
+            background: rgba(79, 70, 229, 0.2);
+            border-color: #6366f1;
+            color: #818cf8;
+            box-shadow: 0 0 15px -3px rgba(99, 102, 241, 0.3);
+        }
+
+        .tab-btn {
+            padding: 0.6rem 0.8rem;
+            border-radius: 0.85rem;
+            border: 1px solid transparent;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            transition: all 0.2s ease;
+        }
+        .tab-btn:hover {
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .tab-btn.active {
+            color: #e0e7ff;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.28), rgba(192, 132, 252, 0.18));
+            border-color: rgba(129, 140, 248, 0.45);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .view-panel {
+            display: none;
+        }
+        .view-panel.active {
+            display: flex;
+        }
+
+        .utility-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+            background: rgba(15, 23, 42, 0.7);
+            color: #94a3b8;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .result-actions {
+            gap: 0.45rem;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            order: 1;
+        }
+
+        .status-pill {
+            font-size: 0.8rem;
+            line-height: 1.1;
+        }
+
+        .status-basic {
+            width: 100%;
+            height: 3.25rem;
+            padding: 0.5rem 0.65rem;
+            border-radius: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            text-align: center;
+        }
+
+        .status-basic span {
+            font-size: 0.82rem;
+        }
+
+        .status-rich {
+            width: 100%;
+            height: 5rem;
+            max-height: 5rem;
+            padding: 0.6rem 0.7rem;
+            border-radius: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            gap: 0.22rem;
+            text-align: left;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .status-rich .status-title {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            line-height: 1.05;
+        }
+
+        .status-rich .status-copy {
+            font-size: 0.72rem;
+            line-height: 1.2;
+            opacity: 0.9;
+            display: block;
+            max-height: 5.8rem;
+            overflow-y: auto;
+            padding-right: 0.15rem;
+            width: 100%;
+        }
+
+        .result-actions-right {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            justify-content: flex-end;
+        }
+
+        .status-rich .status-copy::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .status-rich .status-copy::-webkit-scrollbar-thumb {
+            background: rgba(251, 113, 133, 0.35);
+            border-radius: 999px;
+        }
+
+        .speaker-row {
+            display: inline-flex;
+            width: fit-content;
+            max-width: 100%;
+            align-self: flex-start;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            padding: 0.2rem;
+            margin-top: 0.35rem;
+        }
+
+        .result-name {
+            font-size: 1.45rem;
+            line-height: 1.1;
+        }
+
+        .result-pronunciation {
+            margin-top: 0.15rem;
+            font-size: 0.8rem;
+        }
+
+        .result-meta {
+            margin-top: 0.35rem;
+            gap: 0.35rem;
+            font-size: 0.64rem;
+            letter-spacing: 0.16em;
+        }
+
+        .result-side {
+            width: calc(50% - 0.275rem);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: flex-start;
+            gap: 0.5rem;
+        }
+
+        .status-slot {
+            height: 5rem;
+            max-height: 5rem;
+            width: 100%;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-end;
+            flex: 0 0 auto;
+            order: 2;
+        }
+        .utility-btn:hover {
+            background: rgba(51, 65, 85, 0.8);
+            color: #e2e8f0;
+        }
+        .favorite-btn.active {
+            color: #fb7185;
+            border-color: rgba(244, 63, 94, 0.45);
+            background: rgba(127, 29, 29, 0.28);
+        }
+        .favorite-btn.inactive {
+            color: #64748b;
+        }
+        .delete-btn:hover {
+            color: #fda4af;
+            border-color: rgba(244, 63, 94, 0.3);
+        }
+
+        .empty-state {
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            text-align: center;
+        }
+
+        .ad-placeholder {
+            width: 100%;
+            height: calc(100vh - 4rem);
+            position: sticky;
+            top: 2rem;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(148, 163, 184, 0.08);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.16), rgba(30, 41, 59, 0.08));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            opacity: 0.08;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(148, 163, 184, 0.1);
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 0.8rem 0.95rem;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(71, 85, 105, 0.8);
+            background: rgba(15, 23, 42, 0.7);
+            color: #e2e8f0;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .custom-input:focus {
+            border-color: rgba(129, 140, 248, 0.8);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+        }
+
+        .primary-action {
+            padding: 0.8rem 1rem;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(129, 140, 248, 0.35);
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.95), rgba(124, 58, 237, 0.85));
+            color: white;
+            font-weight: 700;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .primary-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 16px 30px -18px rgba(129, 140, 248, 0.9);
+        }
+
+        @media (max-width: 767px) {
+            .result-card {
+                flex-direction: column;
+                padding: 0.8rem;
+                gap: 0.5rem;
+            }
+
+            .result-main,
+            .result-side {
+                width: 100%;
+            }
+
+            .result-name {
+                font-size: 1.3rem;
+            }
+
+            .result-side {
+                align-items: stretch;
+                justify-content: flex-end;
+                gap: 0.35rem;
+                margin-top: 0.15rem;
+            }
+
+            .status-slot {
+                min-width: 0;
+                order: 1;
+                height: 5rem;
+                max-height: 5rem;
+            }
+
+            .result-actions {
+                order: 2;
+            }
+
+            .utility-btn {
+                width: 34px;
+                height: 34px;
+            }
+
+            .status-basic {
+                height: 3.7rem;
+            }
+
+            .status-rich {
+                height: 5rem;
+                max-height: 5rem;
+            }
         }
         
         /* Toggle Animation */
@@ -82,7 +430,7 @@
         .details-content.open {
             max-height: 500px;
             opacity: 1;
-            margin-top: 1rem;
+            margin-top: 0.75rem;
         }
         .caret-icon {
             transition: transform 0.3s ease;
@@ -92,105 +440,170 @@
         }
     </style>
 </head>
-<body class="h-screen flex flex-col items-center overflow-hidden">
+<body class="h-screen overflow-hidden">
 
-    <!-- Fixed Header Section -->
-    <div class="flex-none w-full max-w-2xl px-4 pt-8 pb-2 z-10 flex flex-col items-center">
-        <div class="text-center w-full">
-            <h1 class="text-4xl md:text-5xl font-bold mb-2 tracking-tight">
-                <span class="gradient-text">BraNGen</span>
-            </h1>
-            
-            <!-- Toggleable Subtitle -->
-            <button id="detailsToggle" class="group flex items-center justify-center gap-2 mx-auto text-slate-400 hover:text-indigo-300 transition-colors text-lg focus:outline-none">
-                <span>Generate completely original, pronounceable names</span>
-                <i class="fas fa-chevron-down caret-icon text-sm opacity-50 group-hover:opacity-100"></i>
-            </button>
+    <div class="w-full h-full flex items-stretch justify-center gap-6 px-4 2xl:px-8">
+        <aside class="hidden 2xl:flex w-56 flex-none justify-end py-8">
+            <div class="ad-placeholder" aria-hidden="true">Ad Space</div>
+        </aside>
 
-            <!-- Collapsible Description -->
-            <div id="detailsContent" class="details-content w-full bg-slate-800/50 rounded-lg border border-slate-700/50 text-left">
-                <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-300">
-                    <div>
-                        <h3 class="text-indigo-400 font-bold mb-2"><i class="fas fa-language mr-1"></i> Multilingual Phonetics</h3>
-                        <p class="leading-relaxed opacity-80">
-                            Combines phonetic rules from <strong>English, Polish, Spanish, German, French, Italian, and Portuguese</strong> to create unique, believable sounds.
-                        </p>
+        <div class="h-full w-full max-w-3xl flex flex-col items-center">
+            <!-- Fixed Header Section -->
+            <div class="flex-none w-full max-w-2xl px-4 pt-5 pb-1 z-10 flex flex-col items-center">
+                <div class="text-center w-full">
+                    <h1 class="text-3xl md:text-4xl font-bold mb-1 tracking-tight">
+                        <span class="gradient-text">BraNGen</span>
+                    </h1>
+                    
+                    <!-- Toggleable Subtitle -->
+                    <button id="detailsToggle" class="group flex items-center justify-center gap-2 mx-auto text-slate-400 hover:text-indigo-300 transition-colors text-sm md:text-base focus:outline-none">
+                        <span>Generate completely original, pronounceable names</span>
+                        <i class="fas fa-chevron-down caret-icon text-sm opacity-50 group-hover:opacity-100"></i>
+                    </button>
+
+                    <!-- Collapsible Description -->
+                    <div id="detailsContent" class="details-content w-full bg-slate-800/50 rounded-lg border border-slate-700/50 text-left">
+                        <div class="p-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-300">
+                            <div>
+                                <h3 class="text-indigo-400 font-bold mb-2"><i class="fas fa-language mr-1"></i> Multilingual Phonetics</h3>
+                                <p class="leading-relaxed opacity-80">
+                                    Combines phonetic rules from <strong>English, Polish, Spanish, German, French, Italian, and Portuguese</strong> to create unique, believable sounds.
+                                </p>
+                                <p class="leading-relaxed opacity-80 mt-2">
+                                    Blends weighted phonetics, mood shaping, and orthography clean-up into names that stay pronounceable while still feeling original.
+                                </p>
+                            </div>
+                            <div>
+                                <h3 class="text-indigo-400 font-bold mb-2"><i class="fas fa-robot mr-1"></i> Smart Features</h3>
+                                <ul class="space-y-1 opacity-80">
+                                    <li><i class="fas fa-check text-emerald-500/70 mr-1"></i> Real-time Dictionary Check</li>
+                                    <li><i class="fas fa-volume-high text-indigo-500/70 mr-1"></i> Native Text-to-Speech</li>
+                                    <li><i class="fas fa-palette text-pink-500/70 mr-1"></i> Mood-based Generation</li>
+                                    <li><i class="fas fa-heart text-rose-400/70 mr-1"></i> Browser-Saved Favourite List</li>
+                                    <li><i class="fas fa-pen text-amber-400/70 mr-1"></i> Manual Custom Name Creation</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-indigo-400 font-bold mb-2"><i class="fas fa-robot mr-1"></i> Smart Features</h3>
-                        <ul class="space-y-1 opacity-80">
-                            <li><i class="fas fa-check text-emerald-500/70 mr-1"></i> Real-time Dictionary Check</li>
-                            <li><i class="fas fa-volume-high text-indigo-500/70 mr-1"></i> Native Text-to-Speech</li>
-                            <li><i class="fas fa-palette text-pink-500/70 mr-1"></i> Mood-based Generation</li>
-                        </ul>
+                </div>
+
+                <!-- View Switcher -->
+                <div class="glass-panel p-1.5 rounded-xl w-full mt-3">
+                    <div class="grid grid-cols-3 gap-1.5" id="viewTabs" role="tablist" aria-label="BraNGen views">
+                        <button class="tab-btn active" data-view="generate" role="tab" aria-selected="true">
+                            <i class="fas fa-dice"></i>
+                            <span>Generate</span>
+                        </button>
+                        <button class="tab-btn" data-view="custom" role="tab" aria-selected="false">
+                            <i class="fas fa-pen"></i>
+                            <span>Custom</span>
+                        </button>
+                        <button class="tab-btn" data-view="favorites" role="tab" aria-selected="false">
+                            <i class="fas fa-heart"></i>
+                            <span>Favourite</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Content Area -->
+            <div class="flex-1 w-full max-w-2xl px-4 pb-6 min-h-0">
+                <div id="generateView" class="view-panel active h-full flex-col gap-0.5">
+                    <!-- Controls -->
+                    <div class="glass-panel p-4 rounded-2xl w-full">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Syllable Control -->
+                            <div>
+                                <label class="block text-slate-300 text-sm font-semibold mb-1.5 flex justify-between">
+                                    <span>Length</span>
+                                    <span class="text-indigo-400"><span id="syllableDisplay">2</span> Syllables</span>
+                                </label>
+                                <input type="range" id="syllableInput" min="2" max="4" value="2" 
+                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                                <div class="flex justify-between text-xs text-slate-500 mt-1">
+                                    <span>Short</span>
+                                    <span>Medium</span>
+                                    <span>Long</span>
+                                </div>
+                            </div>
+
+                            <!-- Mood Selector -->
+                            <div>
+                                <label class="block text-slate-300 text-sm font-semibold mb-1.5 flex justify-between">
+                                    <span>Mood</span>
+                                    <!-- Dynamic Label: Changes color/text on hover/select -->
+                                    <span id="moodDisplay" class="text-indigo-400 capitalize transition-colors duration-200">Neutral</span>
+                                </label>
+                                <div class="grid grid-cols-6 gap-1.5" id="moodContainer">
+                                    <!-- Neutral -->
+                                    <button class="mood-btn active text-indigo-400" data-mood="neutral">
+                                        <i class="fas fa-circle"></i>
+                                    </button>
+                                    <!-- Happy -->
+                                    <button class="mood-btn" data-mood="happy">
+                                        <i class="fas fa-face-smile"></i>
+                                    </button>
+                                    <!-- Scary -->
+                                    <button class="mood-btn" data-mood="scary">
+                                        <i class="fas fa-ghost"></i>
+                                    </button>
+                                    <!-- SciFi -->
+                                    <button class="mood-btn" data-mood="scifi">
+                                        <i class="fas fa-rocket"></i>
+                                    </button>
+                                    <!-- Fantasy -->
+                                    <button class="mood-btn" data-mood="fantasy">
+                                        <i class="fas fa-hat-wizard"></i>
+                                    </button>
+                                    <!-- Funny -->
+                                    <button class="mood-btn" data-mood="funny">
+                                        <i class="fas fa-masks-theater"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Results Area -->
+                    <div id="resultsGrid" class="scroll-area flex-1 overflow-y-auto space-y-0.5 pr-1">
+                        <!-- Results injected here -->
+                    </div>
+                </div>
+
+                <div id="customView" class="view-panel h-full flex-col gap-0.5">
+                    <div class="glass-panel p-4 rounded-2xl w-full">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input id="customWordInput" type="text" maxlength="48" placeholder="Type a custom name" class="custom-input">
+                            <button id="createCustomWordBtn" class="primary-action whitespace-nowrap">
+                                <i class="fas fa-plus mr-2"></i>Create
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="customWordsList" class="scroll-area flex-1 overflow-y-auto space-y-0.5 pr-1">
+                        <!-- Custom words injected here -->
+                    </div>
+                </div>
+
+                <div id="favoritesView" class="view-panel h-full flex-col gap-0.5">
+                    <div id="favoritesList" class="scroll-area flex-1 overflow-y-auto space-y-0.5 pr-1">
+                        <!-- Favourite words injected here -->
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Controls -->
-        <div class="glass-panel p-5 rounded-2xl w-full max-w-xl mt-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Syllable Control -->
-                <div>
-                    <label class="block text-slate-300 text-sm font-semibold mb-2 flex justify-between">
-                        <span>Length</span>
-                        <span class="text-indigo-400"><span id="syllableDisplay">2</span> Syllables</span>
-                    </label>
-                    <input type="range" id="syllableInput" min="2" max="4" value="2" 
-                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
-                    <div class="flex justify-between text-xs text-slate-500 mt-1">
-                        <span>Short</span>
-                        <span>Medium</span>
-                        <span>Long</span>
-                    </div>
-                </div>
-
-                <!-- Mood Selector -->
-                <div>
-                    <label class="block text-slate-300 text-sm font-semibold mb-2 flex justify-between">
-                        <span>Mood</span>
-                        <!-- Dynamic Label: Changes color/text on hover/select -->
-                        <span id="moodDisplay" class="text-indigo-400 capitalize transition-colors duration-200">Neutral</span>
-                    </label>
-                    <div class="grid grid-cols-6 gap-2" id="moodContainer">
-                        <!-- Neutral -->
-                        <button class="mood-btn active text-indigo-400" data-mood="neutral">
-                            <i class="fas fa-circle"></i>
-                        </button>
-                        <!-- Happy -->
-                        <button class="mood-btn" data-mood="happy">
-                            <i class="fas fa-face-smile"></i>
-                        </button>
-                        <!-- Scary -->
-                        <button class="mood-btn" data-mood="scary">
-                            <i class="fas fa-ghost"></i>
-                        </button>
-                        <!-- SciFi -->
-                        <button class="mood-btn" data-mood="scifi">
-                            <i class="fas fa-rocket"></i>
-                        </button>
-                        <!-- Fantasy -->
-                        <button class="mood-btn" data-mood="fantasy">
-                            <i class="fas fa-hat-wizard"></i>
-                        </button>
-                        <!-- Funny -->
-                        <button class="mood-btn" data-mood="funny">
-                            <i class="fas fa-masks-theater"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scrollable Results Area -->
-    <div id="resultsGrid" class="flex-1 w-full max-w-xl px-4 pb-10 overflow-y-auto space-y-4">
-        <!-- Results injected here -->
+        <aside class="hidden 2xl:flex w-56 flex-none justify-start py-8">
+            <div class="ad-placeholder" aria-hidden="true">Ad Space</div>
+        </aside>
     </div>
 
     <script>
         // --- DOM Elements ---
+        const viewTabs = document.querySelectorAll('.tab-btn');
+        const generateView = document.getElementById('generateView');
+        const customView = document.getElementById('customView');
+        const favoritesView = document.getElementById('favoritesView');
         const syllableInput = document.getElementById('syllableInput');
         const syllableDisplay = document.getElementById('syllableDisplay');
         const resultsGrid = document.getElementById('resultsGrid');
@@ -199,11 +612,26 @@
         const detailsToggle = document.getElementById('detailsToggle');
         const detailsContent = document.getElementById('detailsContent');
         const caretIcon = document.querySelector('.caret-icon');
+        const customWordInput = document.getElementById('customWordInput');
+        const createCustomWordBtn = document.getElementById('createCustomWordBtn');
+        const customWordsList = document.getElementById('customWordsList');
+        const favoritesList = document.getElementById('favoritesList');
+        const favoritesCount = document.getElementById('favoritesCount');
+        const customCount = document.getElementById('customCount');
 
         // --- State ---
+        const STORAGE_KEYS = {
+            favorites: 'brangen-favorites-v1',
+            customWords: 'brangen-custom-words-v1'
+        };
+
         let currentSyllables = 2;
         let currentMood = 'neutral';
+        let activeView = 'generate';
         let isGenerating = false;
+        let favoriteEntries = loadStoredEntries(STORAGE_KEYS.favorites);
+        let customEntries = loadStoredEntries(STORAGE_KEYS.customWords);
+        let favoriteViewSnapshot = [];
 
         // --- Event Listeners ---
         
@@ -213,14 +641,44 @@
             caretIcon.classList.toggle('open');
         });
 
-        // 2. Syllable Input
+        // 1a. Description Auto-Collapse
+        document.addEventListener('click', (event) => {
+            if (!detailsContent.classList.contains('open')) return;
+
+            if (!detailsToggle.contains(event.target) && !detailsContent.contains(event.target)) {
+                collapseDetailsPanel();
+            }
+        });
+
+        document.addEventListener('scroll', (event) => {
+            if (!detailsContent.classList.contains('open')) return;
+
+            if (!detailsContent.contains(event.target)) {
+                collapseDetailsPanel();
+            }
+        }, true);
+
+        document.addEventListener('wheel', (event) => {
+            if (!detailsContent.classList.contains('open')) return;
+
+            if (!detailsContent.contains(event.target) && !detailsToggle.contains(event.target)) {
+                collapseDetailsPanel();
+            }
+        }, { passive: true });
+
+        // 2. View Switcher
+        viewTabs.forEach(tab => {
+            tab.addEventListener('click', () => setActiveView(tab.dataset.view));
+        });
+
+        // 3. Syllable Input
         syllableInput.addEventListener('input', (e) => {
-            currentSyllables = parseInt(e.target.value);
+            currentSyllables = parseInt(e.target.value, 10);
             syllableDisplay.innerText = currentSyllables;
             resetAndGenerate();
         });
 
-        // 3. Mood Selection & Hover Effects
+        // 4. Mood Selection & Hover Effects
         moodBtns.forEach(btn => {
             // Click Handler
             btn.addEventListener('click', () => {
@@ -261,8 +719,10 @@
             });
         });
 
-        // 4. Infinite Scroll
+        // 5. Infinite Scroll
         resultsGrid.addEventListener('scroll', () => {
+            if (activeView !== 'generate') return;
+
             const { scrollTop, scrollHeight, clientHeight } = resultsGrid;
             // Buffer of 100px before bottom
             if (scrollTop + clientHeight >= scrollHeight - 100) {
@@ -272,43 +732,312 @@
             }
         });
 
+        // 6. Custom Word Creation
+        createCustomWordBtn.addEventListener('click', () => createCustomWord());
+        customWordInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                createCustomWord();
+            }
+        });
+
         // --- Logic ---
+
+        function loadStoredEntries(storageKey) {
+            try {
+                const rawValue = localStorage.getItem(storageKey);
+                if (!rawValue) return [];
+
+                const parsedValue = JSON.parse(rawValue);
+                return Array.isArray(parsedValue) ? parsedValue : [];
+            } catch (error) {
+                console.error('Storage Error', error);
+                return [];
+            }
+        }
+
+        function saveStoredEntries(storageKey, entries) {
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(entries));
+            } catch (error) {
+                console.error('Storage Error', error);
+            }
+        }
+
+        function generateEntryId(prefix = 'entry') {
+            if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                return `${prefix}-${window.crypto.randomUUID()}`;
+            }
+
+            return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        }
+
+        function updateStorageCounters() {
+            if (favoritesCount) {
+                favoritesCount.innerText = `${favoriteEntries.length} Saved`;
+            }
+
+            if (customCount) {
+                customCount.innerText = `${customEntries.length} Stored`;
+            }
+        }
+
+        function setActiveView(viewName) {
+            if (activeView === viewName) return;
+
+            if (activeView === 'favorites' && viewName !== 'favorites') {
+                favoriteViewSnapshot = [];
+            }
+
+            activeView = viewName;
+
+            viewTabs.forEach(tab => {
+                const isActive = tab.dataset.view === viewName;
+                tab.classList.toggle('active', isActive);
+                tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            generateView.classList.toggle('active', viewName === 'generate');
+            customView.classList.toggle('active', viewName === 'custom');
+            favoritesView.classList.toggle('active', viewName === 'favorites');
+
+            if (viewName === 'custom') {
+                renderCustomWords();
+                customWordInput.focus();
+            }
+
+            if (viewName === 'favorites') {
+                favoriteViewSnapshot = favoriteEntries.map(entry => ({ ...entry }));
+                renderFavoriteWords();
+            }
+
+            syncFavoriteButtons();
+        }
+
+        function collapseDetailsPanel() {
+            detailsContent.classList.remove('open');
+            caretIcon.classList.remove('open');
+        }
 
         function resetAndGenerate() {
             resultsGrid.innerHTML = '';
             // Reset scroll position
-            resultsGrid.scrollTop = 0; 
+            resultsGrid.scrollTop = 0;
             generateBatch(7); // Initial batch size
         }
 
         function generateBatch(count) {
+            if (activeView !== 'generate') return;
+
             isGenerating = true;
             
-            for(let i=0; i<count; i++) {
+            for (let i = 0; i < count; i++) {
                 const nameData = generateNameData(currentSyllables, currentMood);
-                const { card, statusDiv } = createResultCard(nameData);
+                const { card } = createResultCard(nameData);
                 resultsGrid.appendChild(card);
                 
                 // Staggered animation
                 setTimeout(() => card.classList.remove('opacity-0', 'translate-y-4'), i * 50);
-
-                // Dictionary Check
-                checkDictionary(nameData.name).then(result => {
-                    if(!result.exists) {
-                        statusDiv.className = "text-sm flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/30 border border-emerald-500/30 text-emerald-400";
-                        statusDiv.innerHTML = `<i class="fas fa-check-circle"></i> <span>Original</span>`;
-                    } else {
-                        statusDiv.className = "text-sm flex flex-col items-start gap-1 px-3 py-2 rounded-lg bg-rose-900/20 border border-rose-500/30 text-rose-400 w-full md:w-auto md:max-w-xs";
-                        statusDiv.innerHTML = `
-                            <div class="flex items-center gap-2 font-bold"><i class="fas fa-exclamation-circle"></i> Real Word</div>
-                            <div class="text-xs text-rose-300/80 leading-snug italic line-clamp-2" title="${result.definition}">"${result.definition}"</div>
-                        `;
-                    }
-                });
             }
             
             // Allow next batch generation after short delay
-            setTimeout(() => { isGenerating = false; }, 100);
+            setTimeout(() => {
+                isGenerating = false;
+                syncFavoriteButtons();
+            }, 100);
+        }
+
+        function createCustomWord() {
+            const normalizedWord = normalizeCustomWord(customWordInput.value);
+            if (!normalizedWord) return;
+
+            const customWordEntry = {
+                id: generateEntryId('custom'),
+                name: normalizedWord,
+                pronunciation: buildCustomPronunciation(normalizedWord),
+                flavor: 'custom',
+                mood: 'neutral',
+                syllables: estimateSyllables(normalizedWord),
+                source: 'custom'
+            };
+
+            customEntries = [customWordEntry, ...customEntries];
+            saveStoredEntries(STORAGE_KEYS.customWords, customEntries);
+            updateStorageCounters();
+
+            customWordInput.value = '';
+            renderCustomWords();
+        }
+
+        function renderCustomWords() {
+            customWordsList.innerHTML = '';
+
+            if (!customEntries.length) {
+                renderEmptyState(
+                    customWordsList,
+                    'fas fa-pen',
+                    'No custom words yet',
+                    'Create a manual entry above and it will appear here with the same tools as generated results.'
+                );
+                return;
+            }
+
+            customEntries.forEach(entry => {
+                const { card } = createResultCard(entry, {
+                    showDelete: true,
+                    onDelete: () => deleteCustomWord(entry.id),
+                    animateIn: false
+                });
+                customWordsList.appendChild(card);
+            });
+
+            syncFavoriteButtons();
+        }
+
+        function renderFavoriteWords() {
+            favoritesList.innerHTML = '';
+
+            if (!favoriteViewSnapshot.length) {
+                renderEmptyState(
+                    favoritesList,
+                    'fas fa-heart',
+                    'No favourites saved',
+                    'Click the heart icon on any generated or custom word to keep it here.'
+                );
+                return;
+            }
+
+            favoriteViewSnapshot.forEach(entry => {
+                const { card } = createResultCard(entry, { animateIn: false });
+                favoritesList.appendChild(card);
+            });
+
+            syncFavoriteButtons();
+        }
+
+        function deleteCustomWord(entryId) {
+            customEntries = customEntries.filter(entry => entry.id !== entryId);
+            saveStoredEntries(STORAGE_KEYS.customWords, customEntries);
+            updateStorageCounters();
+            renderCustomWords();
+        }
+
+        function normalizeCustomWord(rawValue) {
+            const compactValue = rawValue.trim().replace(/\s+/g, ' ');
+            if (!compactValue) return '';
+
+            return compactValue.charAt(0).toUpperCase() + compactValue.slice(1);
+        }
+
+        function buildCustomPronunciation(word) {
+            const pronunciation = word
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/gi, '·')
+                .replace(/^·+|·+$/g, '');
+
+            return pronunciation || word.toLowerCase();
+        }
+
+        function estimateSyllables(word) {
+            const groups = word.toLowerCase().match(/[aeiouy]+/g);
+            return Math.max(1, groups ? groups.length : 1);
+        }
+
+        function isFavoriteEntry(entryId) {
+            return favoriteEntries.some(entry => entry.id === entryId);
+        }
+
+        function addFavoriteEntry(entry) {
+            if (isFavoriteEntry(entry.id)) return;
+
+            favoriteEntries = [{ ...entry }, ...favoriteEntries];
+            saveStoredEntries(STORAGE_KEYS.favorites, favoriteEntries);
+            updateStorageCounters();
+        }
+
+        function removeFavoriteEntry(entryId) {
+            favoriteEntries = favoriteEntries.filter(entry => entry.id !== entryId);
+            saveStoredEntries(STORAGE_KEYS.favorites, favoriteEntries);
+            updateStorageCounters();
+        }
+
+        function toggleFavoriteEntry(entry) {
+            if (isFavoriteEntry(entry.id)) {
+                removeFavoriteEntry(entry.id);
+            } else {
+                addFavoriteEntry(entry);
+            }
+
+            syncFavoriteButtons();
+        }
+
+        function syncFavoriteButtons() {
+            document.querySelectorAll('.favorite-btn[data-entry-id]').forEach(button => {
+                updateFavoriteButtonState(button, isFavoriteEntry(button.dataset.entryId));
+            });
+        }
+
+        function updateFavoriteButtonState(button, isActive) {
+            button.classList.toggle('active', isActive);
+            button.classList.toggle('inactive', !isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            button.title = isActive ? 'Remove from favourites' : 'Add to favourites';
+        }
+
+        function renderEmptyState(container, iconClass, title, description) {
+            const emptyCard = document.createElement('div');
+            emptyCard.className = 'glass-panel empty-state rounded-xl px-6 py-8 text-slate-400';
+            emptyCard.innerHTML = `
+                <i class="${iconClass} text-2xl text-slate-500"></i>
+                <h3 class="text-lg font-bold text-slate-200">${title}</h3>
+                <p class="max-w-md text-sm leading-relaxed">${description}</p>
+            `;
+
+            container.appendChild(emptyCard);
+        }
+
+        function updateDictionaryStatus(statusDiv, word) {
+            checkDictionary(word).then(result => {
+                if (!result.exists) {
+                    statusDiv.className = 'status-slot';
+                    statusDiv.innerHTML = `
+                        <div class="status-basic status-pill bg-emerald-900/30 border border-emerald-500/30 text-emerald-400">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Original English Word</span>
+                        </div>
+                    `;
+                } else {
+                    statusDiv.className = 'status-slot';
+                    statusDiv.innerHTML = `
+                        <div class="status-rich status-pill bg-rose-900/22 border border-rose-500/30 text-rose-400">
+                            <div class="status-title"><i class="fas fa-exclamation-circle"></i><span>Real English Word</span></div>
+                            <div class="status-copy text-rose-300/85 italic" title="${result.definition}">"${result.definition}"</div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function buildMetaContent(data) {
+            if (data.source === 'custom') {
+                return `
+                    <span class="text-amber-400" title="Manual custom word"><i class="fas fa-pen"></i></span>
+                    <span class="text-slate-600">•</span>
+                    ${data.syllables} SYLLABLES
+                    <span class="text-slate-600">•</span>
+                    <span class="text-slate-400 font-bold">CUSTOM</span>
+                `;
+            }
+
+            const moodIcon = MOOD_ICONS[data.mood] || MOOD_ICONS.neutral;
+
+            return `
+                <span class="text-indigo-400" title="Mood: ${data.mood.toUpperCase()}">${moodIcon}</span>
+                <span class="text-slate-600">•</span>
+                ${data.syllables} SYLLABLES
+                <span class="text-slate-600">•</span>
+                <span class="text-slate-400 font-bold">${data.flavor.toUpperCase()} STYLE</span>
+            `;
         }
 
         // --- Data & Algorithms ---
@@ -698,10 +1427,13 @@
             cleanedWord = cleanedWord.charAt(0).toUpperCase() + cleanedWord.slice(1);
 
             return {
+                id: generateEntryId('generated'),
                 name: cleanedWord,
                 pronunciation: parts.join('·').toLowerCase(),
                 flavor: globalStyle,
-                mood: cleanMood
+                mood: cleanMood,
+                syllables: numSyllables,
+                source: 'generated'
             };
         }
 
@@ -718,7 +1450,7 @@
             const utterance = new SpeechSynthesisUtterance(text);
             
             // Try to find a high-quality voice for the specific language
-            const voiceMap = { 'en': 'en-US', 'pl': 'pl-PL', 'es': 'es-ES', 'de': 'de-DE', 'fr': 'fr-FR', 'it': 'it-IT', 'pt': 'pt-PT' }
+            const voiceMap = { 'en': 'en-US', 'pl': 'pl-PL', 'es': 'es-ES', 'de': 'de-DE', 'fr': 'fr-FR', 'it': 'it-IT', 'pt': 'pt-PT' };
             const targetLang = voiceMap[langCode];
             
             const preferredVoice = voices.find(v => v.lang.startsWith(targetLang) && v.localService) || 
@@ -738,65 +1470,70 @@
                 }
                 const data = await response.json();
                 // Extract first definition if available
-                let definition = "Exists in dictionary.";
-                if(data[0] && data[0].meanings && data[0].meanings[0] && data[0].meanings[0].definitions[0]) {
+                let definition = 'Exists in dictionary.';
+                if (data[0] && data[0].meanings && data[0].meanings[0] && data[0].meanings[0].definitions[0]) {
                     definition = data[0].meanings[0].definitions[0].definition;
                 }
                 return { exists: true, definition: definition };
             } catch (error) {
-                console.error("API Error", error);
+                console.error('API Error', error);
                 return { exists: false, error: true }; // Assume original if API fails
             }
         }
 
-        function createResultCard(data) {
-            const { name, pronunciation, flavor, mood } = data;
+        function createResultCard(data, options = {}) {
+            const normalizedEntry = {
+                ...data,
+                pronunciation: data.pronunciation || buildCustomPronunciation(data.name),
+                flavor: data.flavor || 'custom',
+                mood: data.mood || 'neutral',
+                syllables: data.syllables || estimateSyllables(data.name),
+                source: data.source || 'generated'
+            };
+
             const card = document.createElement('div');
-            card.className = "glass-panel p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all duration-300 opacity-0 transform translate-y-4 flex-none";
+            card.className = 'result-card glass-panel transition-all duration-300 opacity-0 transform translate-y-4 flex-none';
+            card.dataset.entryId = normalizedEntry.id;
+
+            if (options.animateIn === false) {
+                card.classList.remove('opacity-0', 'translate-y-4');
+            }
             
             const leftDiv = document.createElement('div');
+            leftDiv.className = 'result-main';
             
             // Generated Name
             const nameEl = document.createElement('h2');
-            nameEl.className = "text-2xl font-bold tracking-wide cursor-pointer hover:text-indigo-400 transition-colors";
-            nameEl.innerText = name;
+            nameEl.className = 'result-name font-bold tracking-wide cursor-pointer hover:text-indigo-400 transition-colors break-words';
+            nameEl.innerText = normalizedEntry.name;
             nameEl.onclick = () => {
-                navigator.clipboard.writeText(name);
+                navigator.clipboard.writeText(normalizedEntry.name);
                 const oldText = nameEl.innerText;
-                nameEl.innerText = "Copied!";
+                nameEl.innerText = 'Copied!';
                 setTimeout(() => nameEl.innerText = oldText, 1000);
             };
 
             // Speaker Buttons Container
             const speakersEl = document.createElement('div');
-            speakersEl.className = "flex gap-2 bg-slate-900/50 p-1 rounded-lg border border-white/5";
+            speakersEl.className = 'speaker-row flex flex-wrap bg-slate-900/50 rounded-lg border border-white/5';
             ['en', 'pl', 'es', 'de', 'fr', 'it', 'pt'].forEach(lang => {
                 const btn = document.createElement('button');
-                btn.className = "btn-icon";
+                btn.type = 'button';
+                btn.className = 'btn-icon';
                 btn.innerHTML = `<i class="fas fa-volume-up text-xs"></i><span class="lang-tag">${lang.toUpperCase()}</span>`;
-                btn.onclick = () => speakWord(name, lang);
+                btn.onclick = () => speakWord(normalizedEntry.name, lang);
                 speakersEl.appendChild(btn);
             });
 
             // Pronunciation
             const pronunciationEl = document.createElement('div');
-            pronunciationEl.className = "text-sm text-slate-400 mt-1";
-            pronunciationEl.innerHTML = `<span class="font-mono text-indigo-300/80 tracking-wider">/${pronunciation}/</span>`;
+            pronunciationEl.className = 'result-pronunciation text-slate-400';
+            pronunciationEl.innerHTML = `<span class="font-mono text-indigo-300/80 tracking-wider">/${normalizedEntry.pronunciation}/</span>`;
 
             // Syllables and Style
             const metaEl = document.createElement('div');
-            metaEl.className = "text-xs text-slate-500 uppercase tracking-widest flex items-center gap-2 mt-1";
-            
-            // Mood Icon in meta
-            const moodIcon = MOOD_ICONS[mood] || MOOD_ICONS.neutral;
-            
-            metaEl.innerHTML = `
-                <span class="text-indigo-400" title="Mood: ${mood.toUpperCase()}">${moodIcon}</span>
-                <span class="text-slate-600">•</span>
-                ${syllableInput.value} SYLLABLES
-                <span class="text-slate-600">•</span>
-                <span class="text-slate-400 font-bold">${flavor.toUpperCase()} STYLE</span>
-            `;
+            metaEl.className = 'result-meta text-slate-500 uppercase flex items-center flex-wrap';
+            metaEl.innerHTML = buildMetaContent(normalizedEntry);
 
             leftDiv.appendChild(nameEl);
             leftDiv.appendChild(pronunciationEl);
@@ -804,29 +1541,64 @@
             leftDiv.appendChild(metaEl);
 
             const rightDiv = document.createElement('div');
-            rightDiv.className = "flex items-center gap-2 w-full md:w-auto justify-between md:justify-end";
+            rightDiv.className = 'result-side';
 
             const statusDiv = document.createElement('div');
-            statusDiv.className = "text-sm flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700";
-            statusDiv.innerHTML = `<div class="loader"></div> <span class="text-slate-400">Verifying...</span>`;
+            statusDiv.className = 'status-slot';
+            statusDiv.innerHTML = '<div class="status-basic status-pill bg-slate-800 border border-slate-700 text-slate-400"><div class="loader"></div> <span class="text-slate-400">Verifying...</span></div>';
+
+            const actionGroup = document.createElement('div');
+            actionGroup.className = 'result-actions flex items-center';
+
+            const actionGroupRight = document.createElement('div');
+            actionGroupRight.className = 'result-actions-right';
+
+            const favoriteBtn = document.createElement('button');
+            favoriteBtn.type = 'button';
+            favoriteBtn.className = 'utility-btn favorite-btn inactive';
+            favoriteBtn.dataset.entryId = normalizedEntry.id;
+            favoriteBtn.innerHTML = '<i class="fas fa-heart"></i>';
+            favoriteBtn.onclick = () => toggleFavoriteEntry(normalizedEntry);
 
             const searchBtn = document.createElement('a');
-            searchBtn.href = `https://www.google.com/search?q=${name}`;
-            searchBtn.target = "_blank";
-            searchBtn.className = "p-2 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 text-slate-400";
+            searchBtn.href = `https://www.google.com/search?q=${encodeURIComponent(normalizedEntry.name)}`;
+            searchBtn.target = '_blank';
+            searchBtn.rel = 'noreferrer noopener';
+            searchBtn.className = 'utility-btn';
             searchBtn.innerHTML = '<i class="fas fa-search"></i>';
+            searchBtn.title = 'Search the web';
 
+            actionGroup.appendChild(searchBtn);
+            actionGroupRight.appendChild(favoriteBtn);
+
+            if (options.showDelete) {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.className = 'utility-btn delete-btn';
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteBtn.title = 'Delete custom word';
+                deleteBtn.onclick = options.onDelete;
+                actionGroupRight.appendChild(deleteBtn);
+            }
+
+            actionGroup.appendChild(actionGroupRight);
+
+            rightDiv.appendChild(actionGroup);
             rightDiv.appendChild(statusDiv);
-            rightDiv.appendChild(searchBtn);
 
             card.appendChild(leftDiv);
             card.appendChild(rightDiv);
+
+            updateDictionaryStatus(statusDiv, normalizedEntry.name);
 
             return { card, statusDiv };
         }
 
         // Initialize
-        window.onload = () => resetAndGenerate();
+        window.onload = () => {
+            updateStorageCounters();
+            resetAndGenerate();
+        };
 
     </script>
 </body>
