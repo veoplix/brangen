@@ -238,6 +238,13 @@
             justify-content: flex-end;
         }
 
+        .result-actions-left {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            justify-content: flex-start;
+        }
+
         .status-rich .status-copy::-webkit-scrollbar {
             width: 4px;
         }
@@ -1550,6 +1557,9 @@
             const actionGroup = document.createElement('div');
             actionGroup.className = 'result-actions flex items-center';
 
+            const actionGroupLeft = document.createElement('div');
+            actionGroupLeft.className = 'result-actions-left';
+
             const actionGroupRight = document.createElement('div');
             actionGroupRight.className = 'result-actions-right';
 
@@ -1568,7 +1578,16 @@
             searchBtn.innerHTML = '<i class="fas fa-search"></i>';
             searchBtn.title = 'Search the web';
 
-            actionGroup.appendChild(searchBtn);
+            const domainBtn = document.createElement('a');
+            domainBtn.href = `https://www.namecheap.com/domains/registration/results/?domain=${encodeURIComponent(`${normalizedEntry.name}.com`)}`;
+            domainBtn.target = '_blank';
+            domainBtn.rel = 'noreferrer noopener';
+            domainBtn.className = 'utility-btn';
+            domainBtn.innerHTML = '<i class="fas fa-globe"></i>';
+            domainBtn.title = 'Check domain availability';
+
+            actionGroupLeft.appendChild(searchBtn);
+            actionGroupLeft.appendChild(domainBtn);
             actionGroupRight.appendChild(favoriteBtn);
 
             if (options.showDelete) {
@@ -1581,6 +1600,7 @@
                 actionGroupRight.appendChild(deleteBtn);
             }
 
+            actionGroup.appendChild(actionGroupLeft);
             actionGroup.appendChild(actionGroupRight);
 
             rightDiv.appendChild(actionGroup);
