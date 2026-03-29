@@ -132,287 +132,306 @@
 
         syllableInput.addEventListener('input', (e) => syllableDisplay.innerText = e.target.value);
         countInput.addEventListener('input', (e) => countDisplay.innerText = e.target.value);
-		
-		/**************************************************
-		// First, preliminary word generator implementation that is now obsolete
 
-        // --- Multilingual Phonetic Data ---
-        const PHONETICS = {
-            en: {
-                cons: ['b', 'd', 'f', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'sh', 'ch', 'th', 'ph', 'qu', 'st'],
-                vows: ['a', 'e', 'i', 'o', 'u', 'y', 'ee', 'ea', 'ou', 'ai'],
-                ends: ['t', 'n', 's', 'd', 'l', 'ck', 'm', 'p']
+        /**
+        * LINGUISTIC_DATA
+        * Weights represent relative probability (higher = more common).
+        * All characters are standard English (Latin) alphabet. 
+        * 'cons': Onset consonants/clusters.
+        * 'vows': Nucleus vowels.
+        * 'ends': Coda (syllable endings).
+        */
+        const LINGUISTIC_DATA = {
+            en: {  // English
+                probabilities: { vowelStart: 0.10, coda: 0.60, finalCoda: 0.70 },
+                cons: {
+                    'b':4, 'c':4, 'd':5, 'f':4, 'g':3, 'h':4, 'j':1, 'k':3, 'l':5, 'm':4, 'n':6, 
+                    'p':4, 'r':6, 's':6, 't':8, 'v':2, 'w':3, 'x':1, 'y':1, 'z':1,
+                    // Clusters to create original "fantasy" feel
+                    'th':4, 'sh':3, 'ch':3, 'ph':1, 'qu':1, 'wh':1, 
+                    'st':3, 'str':1, 'br':2, 'cr':2, 'fl':2, 'gl':1, 'kl':1, 'dr':2
+                },
+                vows: {
+                    // English allows 'y' as vowel, but we handle logic in function
+                    'a':10, 'e':12, 'i':10, 'o':8, 'u':4, 'y':1,
+                    'ea':2, 'ee':2, 'ai':1, 'oa':1, 'ou':1, 'au':1
+                },
+                ends: {
+                    't':6, 'n':6, 's':6, 'd':5, 'l':5, 'm':3, 'r':5, 'ck':2, 'p':2, 'g':1, 
+                    'th':2, 'sh':2, 'st':2, 'x':1
+                }
             },
-            pl: {
-                cons: ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'w', 'z', 'cz', 'sz', 'prz', 'rz', 'dz'],
-                vows: ['a', 'e', 'i', 'o', 'u', 'y'],
-                ends: ['k', 'm', 'n', 'z', 'j', 'w', 'c']
+
+            pl: {  // Polish
+                // Polish rarely starts with vowels compared to consonants, but often ends in vowel (a, o, e)
+                probabilities: { vowelStart: 0.05, coda: 0.50, finalCoda: 0.35 },
+                cons: {
+                    'b':4, 'c':3, 'd':4, 'f':2, 'g':3, 'h':2, 'j':4, 'k':5, 'l':4, 'm':4, 'n':5, 
+                    'p':4, 'r':4, 's':4, 't':5, 'w':6, 'z':4, 
+                    // Iconic Polish clusters
+                    'cz':3, 'sz':3, 'rz':3, 'dz':2, 'prz':2, 'trz':1, 'szcz':1, 'ch':2, 'gr':1, 'kr':1
+                },
+                vows: {
+                    // 'y' is common vowel in Polish (mysz, dym)
+                    'a':10, 'e':9, 'i':8, 'o':9, 'u':5, 'y':6
+                },
+                ends: {
+                    'k':4, 'm':4, 'n':4, 'z':3, 'j':3, 'w':2, 'sz':2, 'cz':1, 'c':2
+                }
             },
-            es: {
-                cons: ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'z', 'll', 'rr', 'ch', 'qu'],
-                vows: ['a', 'e', 'i', 'o', 'u'],
-                ends: ['s', 'n', 'l', 'r', 'd', 'z']
+
+            es: {  // Spanish
+                // Flowing, vocalic - very low internal coda chance (makes it flowy)
+                probabilities: { vowelStart: 0.15, coda: 0.10, finalCoda: 0.45 },
+                cons: {
+                    'b':5, 'c':6, 'd':5, 'f':3, 'g':4, 'h':2, 'j':2, 'l':5, 'm':5, 'n':7, 
+                    'p':5, 'r':6, 's':6, 't':5, 'v':3, 'z':2, 
+                    'll':2, 'rr':1, 'ch':2, 'qu':2, 'pl':1, 'tr':1, 'gr':1
+                },
+                vows: {
+                    // Spanish uses 'i' instead of 'y' for the vowel sound almost always
+                    'a':12, 'e':13, 'i':8, 'o':10, 'u':4
+                },
+                ends: {
+                    's':10, 'n':9, 'l':5, 'r':6, 'd':5, 'z':2, 'm':1
+                }
+            },
+
+            de: { // German
+                // Heavy on consonants, complex clusters, often ends in consonants (-n, -r, -t)
+                probabilities: { vowelStart: 0.10, coda: 0.55, finalCoda: 0.80 },
+                cons: {
+                    'b':4, 'd':4, 'f':4, 'g':4, 'h':4, 'j':2, 'k':4, 'l':5, 'm':4, 'n':6, 
+                    'p':2, 'r':5, 's':5, 't':6, 'v':3, 'w':4, 'z':4,
+                    // Germanic clusters
+                    'sch':5, 'st':3, 'sp':3, 'kn':2, 'pf':2, 'zw':2, 'kl':2, 'br':2, 'tr':2, 'str':2
+                },
+                vows: {
+                    'a':8, 'e':12, 'i':8, 'o':6, 'u':5,
+                    // Distinctive German digraphs
+                    'ei':3, 'ie':3, 'au':2, 'eu':1
+                },
+                ends: {
+                    'n':10, 'r':8,  // -en, -er endings are very common
+                    't':6, 'g':4, 'l':4, 'm':4, 's':4,
+                    'ch':3, 'ck':2, 'ng':2, 'st':2, 'ft':1, 'tz':1, 'ss':1
+                }
+            },
+
+            fr: { // French
+                // Flowing, uses 'qu', 'ch', silent endings (x, s, t) simulated by orthography
+                probabilities: { vowelStart: 0.15, coda: 0.20, finalCoda: 0.40 },
+                cons: {
+                    'b':4, 'c':4, 'd':4, 'f':3, 'g':3, 'h':2, 'j':3, 'l':6, 'm':5, 'n':5, 
+                    'p':4, 'r':6, 's':5, 't':5, 'v':4, 'z':1,
+                    'ch':4, 'qu':3, 'gn':2, 'cl':1, 'fl':1, 'pl':1, 'tr':1, 'gr':1
+                },
+                vows: {
+                    'a':10, 'e':12, 'i':8, 'o':8, 'u':4, 'y':1,
+                    // Iconic French vowels
+                    'ai':2, 'au':2, 'ou':3, 'oi':2, 'eau':2, 'eu':2
+                },
+                ends: {
+                    'x':2, 's':5, 't':4,  // x, s, t often silent but written
+                    'n':5, 'r':5, 'l':3, 'c':2
+                }
+            },
+
+            it: { // Italian
+                // Almost always ends in vowel. Internal clusters like 'tt', 'll' simulated by coda+onset
+                probabilities: { vowelStart: 0.15, coda: 0.30, finalCoda: 0.05 },
+                cons: {
+                    'b':4, 'c':5, 'd':4, 'f':3, 'g':4, 'h':1, 'l':5, 'm':4, 'n':5, 
+                    'p':4, 'r':5, 's':5, 't':5, 'v':3, 'z':3,
+                    'sc':3, 'ch':2, 'gn':2, 'gl':2, 'qu':2, 
+                    'st':2, 'sp':2, 'pr':2, 'tr':2, 'gr':2
+                },
+                vows: {
+                    'a':12, 'e':11, 'i':10, 'o':11, 'u':4
+                },
+                ends: {
+                    // Very rare endings, but internal syllables can close with these
+                    'n':4, 'r':4, 'l':4, 'm':3,
+                    's':1  // 's' only in loanwords usually, but keeps it spicy
+                }
+            },
+
+            pt: { // Portuguese
+                // Nasal sounds (m, n), 'lh', 'nh', 'ç' (as c).
+                probabilities: { vowelStart: 0.15, coda: 0.25, finalCoda: 0.60 },
+                cons: {
+                    'b':4, 'c':5, 'd':5, 'f':3, 'g':3, 'h':1, 'j':3, 'l':5, 'm':4, 'n':5, 
+                    'p':4, 'r':5, 's':6, 't':5, 'v':3, 'z':2,
+                    'lh':3, 'nh':3, 'ch':2, 'qu':2, // Iconic Portuguese digraphs
+                    'pr':1, 'tr':1, 'br':1
+                },
+                vows: {
+                    'a':12, 'e':12, 'i':8, 'o':10, 'u':5,
+                    'ao':2,  // 'ão' simplified to 'ao'
+                    'ei':2, 'ou':2
+                },
+                ends: {
+                    'm':8,  // 'm' is the classic nasal ending
+                    's':8, 'r':6, 'l':5, 'z':3, 'n':1
+                }
             }
         };
 
-        function getRandomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+        // --- HELPER FUNCTIONS ---
+
+        function getRandomItem(arr) { 
+            return arr[Math.floor(Math.random() * arr.length)]; 
+        }
+
+        function getWeightedItem(weightsObj) {
+            let total = 0;
+            const keys = Object.keys(weightsObj);
+            for (let k of keys) total += weightsObj[k];
+            
+            let random = Math.floor(Math.random() * total);
+            
+            for (let k of keys) {
+                random -= weightsObj[k];
+                if (random < 0) return k;
+            }
+            return keys[0];
+        }
+
+        /**
+        * Advanced Vowel Selector
+        * Prevents "jyi", "quu", and language-specific 'y' violations.
+        */
+        function getValidVowel(langVowels, onset, language, isFirstSyllable) {
+            let vowel = getWeightedItem(langVowels);
+            
+            // Safety loop to ensure valid combination
+			// We limit retries to avoid infinite loops, though unlikely with this data.
+            let attempts = 0;
+            let isValid = false;
+
+            while (!isValid && attempts < 10) {
+                isValid = true;
+                attempts++;
+
+                // RULE 1: The 'QU' Constraint (Universal)
+                // If onset is 'qu', vowel must not be 'u', 'o' or 'y'.
+                if (onset === 'qu' && ['u', 'o', 'y', 'ou', 'au', 'oi', 'ao', 'eau'].includes(vowel)) {
+                    isValid = false;
+                }
+
+                // RULE 2: The 'Y/J' Constraint (Universal)
+                // If onset is 'y' or 'j', avoid 'i' or 'y' immediately after.
+				// (Prevents "Jyi" or "Yy").
+                if ((onset === 'y' || onset === 'j') && (vowel === 'i' || vowel === 'y' || vowel === 'ie' || vowel === 'ei')) {
+                    isValid = false;
+                }
+
+                // RULE 3: Polish/German 'Y' Constraint
+                // Polish/German words rarely start with 'y' as vowel
+                if ((language === 'pl' || language === 'de') && isFirstSyllable && !onset && vowel === 'y') {
+                    isValid = false;
+                }
+
+                // RULE 4: English 'Y' Constraint
+                // English rarely starts with 'y' as a vowel (e.g. "Yttrium" is rare).
+				// If no onset (vowel start), prefer other vowels.
+                if (language === 'en' && isFirstSyllable && !onset && vowel === 'y') {
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    vowel = getWeightedItem(langVowels);
+                }
+            }
+            
+            // Fallback if random generator is stubborn
+            if (!isValid) return 'a'; 
+            return vowel;
+        }
+
+        /**
+        * Post-Processing Clean Up
+        * Removes triple letters.
+        */
+        function cleanOrthography(word) {
+            let chars = word.split('');
+            let cleaned = [];
+            
+            for (let i = 0; i < chars.length; i++) {
+                const char = chars[i];
+                const len = cleaned.length;
+                // Check for triple letters (e.g., 's', 's', 's')
+                if (len >= 2 && cleaned[len-1] === char && cleaned[len-2] === char) {
+                    continue;  // Skip the 3rd instance
+                }
+                cleaned.push(char);
+            }
+            return cleaned.join('');
+        }
+
+        // --- MAIN GENERATOR ---
 
         function generateNameData(numSyllables) {
             let parts = [];
-            // Determine the "flavor" of this specific word
-            const styles = ['en', 'pl', 'es', 'mix'];
-            const style = getRandomItem(styles);
-            
+            // Select Style
+            const styles = ['en', 'pl', 'es', 'de', 'fr', 'it', 'pt', 'mix'];
+            const globalStyle = getRandomItem(styles);
+
             for (let i = 0; i < numSyllables; i++) {
                 const isLast = (i === numSyllables - 1);
-                const currentStyle = style === 'mix' ? getRandomItem(['en', 'pl', 'es']) : style;
-                const set = PHONETICS[currentStyle];
+                const isFirst = (i === 0);
                 
-                let s = getRandomItem(set.cons) + getRandomItem(set.vows);
-                if (Math.random() > 0.6 || isLast) s += getRandomItem(set.ends);
+                // Determine Language for this syllable
+                let lang = globalStyle === 'mix' ? getRandomItem(['en', 'pl', 'es', 'de', 'fr', 'it', 'pt']) : globalStyle;
+                const config = LINGUISTIC_DATA[lang];
+                
+                // 1. Determine Structure (Onset - Nucleus - Coda)
+                let hasOnset = true;
+                let hasCoda = false;
+
+                // Vowel Start Chance (only for first syllable)
+                if (isFirst && Math.random() < config.probabilities.vowelStart) {
+                    hasOnset = false;
+                }
+
+                // Coda Chance
+                const codaChance = isLast ? config.probabilities.finalCoda : config.probabilities.coda;
+                if (Math.random() < codaChance) {
+                    hasCoda = true;
+                }
+
+                // 2. Generate Syllable
+                let s = "";
+                let onsetStr = "";
+                
+                if (hasOnset) {
+                    onsetStr = getWeightedItem(config.cons);
+                    s += onsetStr;
+                }
+
+                // Pick vowel based on context
+                s += getValidVowel(config.vows, onsetStr, lang, isFirst);
+
+                if (hasCoda) {
+                    s += getWeightedItem(config.ends);
+                }
+
                 parts.push(s);
             }
-            
-            parts[0] = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+
+            // 3. Assemble and Clean
+            let rawWord = parts.join('');
+            let cleanedWord = cleanOrthography(rawWord);
+
+            // Capitalize
+            cleanedWord = cleanedWord.charAt(0).toUpperCase() + cleanedWord.slice(1);
+
             return {
-                name: parts.join(''),
+                name: cleanedWord,
                 pronunciation: parts.join('·').toLowerCase(),
-                flavor: style
+                flavor: globalStyle
             };
         }
-		**************************************************/
-
-		/**
-		 * GENERATOR CONFIGURATION
-		 * Weights represent relative probability. 
-		 * 'cons': Onset consonants/clusters.
-		 * 'vows': Nucleus vowels.
-		 * 'ends': Coda (syllable endings).
-		 */
-		const LINGUISTIC_DATA = {
-			en: {
-				probabilities: { 
-					vowelStart: 0.10, 
-					coda: 0.60, 
-					finalCoda: 0.70 
-				},
-				cons: {
-					'b':4, 'c':4, 'd':5, 'f':4, 'g':3, 'h':4, 'j':1, 'k':3, 'l':5, 'm':4, 'n':6, 
-					'p':4, 'r':6, 's':6, 't':8, 'v':2, 'w':3, 'x':1, 'y':1, 'z':1,
-					// Clusters to create original "fantasy" feel
-					'th':4, 'sh':3, 'ch':3, 'ph':1, 'qu':1, 'wh':1, 
-					'st':3, 'str':1, 'br':2, 'cr':2, 'fl':2, 'gl':1, 'kl':1, 'dr':2
-				},
-				vows: {
-					// English allows 'y' as vowel, but we handle logic in function
-					'a':10, 'e':12, 'i':10, 'o':8, 'u':4, 'y':1,
-					'ea':2, 'ee':2, 'ai':1, 'oa':1, 'ou':1, 'au':1
-				},
-				ends: {
-					't':6, 'n':6, 's':6, 'd':5, 'l':5, 'm':3, 'r':5, 'ck':2, 'p':2, 'g':1, 
-					'th':2, 'sh':2, 'st':2, 'x':1
-				}
-			},
-			pl: {
-				// Anglicized Polish (No diacritics)
-				probabilities: { 
-					vowelStart: 0.05, // Polish rarely starts with vowels compared to consonants
-					coda: 0.50, 
-					finalCoda: 0.35 // Often ends in vowel (a, o, e)
-				},
-				cons: {
-					'b':4, 'c':3, 'd':4, 'f':2, 'g':3, 'h':2, 'j':4, 'k':5, 'l':4, 'm':4, 'n':5, 
-					'p':4, 'r':4, 's':4, 't':5, 'w':6, 'z':4, 
-					// Iconic Polish clusters
-					'cz':3, 'sz':3, 'rz':3, 'dz':2, 'prz':2, 'trz':1, 'szcz':1, 'ch':2, 'gr':1, 'kr':1
-				},
-				vows: {
-					// 'y' is common vowel in Polish (mysz, dym)
-					'a':10, 'e':9, 'i':8, 'o':9, 'u':5, 'y':6
-				},
-				ends: {
-					'k':4, 'm':4, 'n':4, 'z':3, 'j':3, 'w':2, 'sz':2, 'cz':1, 'c':2
-				}
-			},
-			es: {
-				// Spanish: Flowing, vocalic
-				probabilities: { 
-					vowelStart: 0.15, 
-					coda: 0.10, // Very low internal coda chance (makes it flowy)
-					finalCoda: 0.45 
-				},
-				cons: {
-					'b':5, 'c':6, 'd':5, 'f':3, 'g':4, 'h':2, 'j':2, 'l':5, 'm':5, 'n':7, 
-					'p':5, 'r':6, 's':6, 't':5, 'v':3, 'z':2, 
-					'll':2, 'rr':1, 'ch':2, 'qu':2, 
-					'pl':1, 'tr':1, 'gr':1
-				},
-				vows: {
-					// Spanish uses 'i' instead of 'y' for the vowel sound almost always
-					'a':12, 'e':13, 'i':8, 'o':10, 'u':4 
-				},
-				ends: {
-					's':10, 'n':9, 'l':5, 'r':6, 'd':5, 'z':2, 'm':1
-				}
-			}
-		};
-
-		// --- HELPER FUNCTIONS ---
-
-		function getRandomItem(arr) { 
-			return arr[Math.floor(Math.random() * arr.length)]; 
-		}
-
-		function getWeightedItem(weightsObj) {
-			let total = 0;
-			const keys = Object.keys(weightsObj);
-			for (let k of keys) total += weightsObj[k];
-			
-			let random = Math.floor(Math.random() * total);
-			
-			for (let k of keys) {
-				random -= weightsObj[k];
-				if (random < 0) return k;
-			}
-			return keys[0];
-		}
-
-		/**
-		 * Advanced Vowel Selector
-		 * prevents "jyi", "quu", and language-specific 'y' violations.
-		 */
-		function getValidVowel(langVowels, onset, language, isFirstSyllable) {
-			let vowel = getWeightedItem(langVowels);
-
-			// Safety loop to ensure valid combination
-			// We limit retries to avoid infinite loops, though unlikely with this data.
-			let attempts = 0;
-			let isValid = false;
-
-			while (!isValid && attempts < 10) {
-				isValid = true;
-				attempts++;
-
-				// RULE 1: The 'QU' Constraint (Universal)
-				// If onset is 'qu', vowel must not be 'u', 'o' or 'y'.
-				if (onset === 'qu' && ['u', 'o', 'y', 'ou'].includes(vowel)) {
-					isValid = false;
-				}
-
-				// RULE 2: The 'Y/J' Constraint (Universal)
-				// If onset is 'y' or 'j', avoid 'i' or 'y' immediately after.
-				// (Prevents "Jyi" or "Yy").
-				if ((onset === 'y' || onset === 'j') && (vowel === 'i' || vowel === 'y')) {
-					isValid = false;
-				}
-
-				// RULE 3: Polish 'Y' Constraint
-				// Polish words never start with 'y' (it's strictly a medial/final vowel).
-				if (language === 'pl' && isFirstSyllable && !onset && vowel === 'y') {
-					isValid = false;
-				}
-
-				// RULE 4: English 'Y' Constraint
-				// English rarely starts with 'y' as a vowel (e.g. "Yttrium" is rare).
-				// If no onset (vowel start), prefer other vowels.
-				if (language === 'en' && isFirstSyllable && !onset && vowel === 'y') {
-					isValid = false;
-				}
-
-				if (!isValid) {
-					vowel = getWeightedItem(langVowels);
-				}
-			}
-			
-			// Fallback if random generator is stubborn
-			if (!isValid) return 'a'; 
-			return vowel;
-		}
-
-		/**
-		 * Post-Processing Clean Up
-		 * Removes triple letters and smooths connections.
-		 */
-		function cleanOrthography(word) {
-			let chars = word.split('');
-			let cleaned = [];
-			
-			for (let i = 0; i < chars.length; i++) {
-				const char = chars[i];
-				const len = cleaned.length;
-				
-				// Check for triple letters (e.g., 's', 's', 's')
-				if (len >= 2 && cleaned[len-1] === char && cleaned[len-2] === char) {
-					continue; // Skip the 3rd instance
-				}
-				cleaned.push(char);
-			}
-			return cleaned.join('');
-		}
-
-		// --- MAIN GENERATOR ---
-
-		function generateNameData(numSyllables) {
-			let parts = [];
-			// Select Style
-			const styles = ['en', 'pl', 'es', 'mix'];
-			const globalStyle = getRandomItem(styles);
-
-			for (let i = 0; i < numSyllables; i++) {
-				const isLast = (i === numSyllables - 1);
-				const isFirst = (i === 0);
-				
-				// Determine Language for this syllable
-				let lang = globalStyle === 'mix' ? getRandomItem(['en', 'pl', 'es']) : globalStyle;
-				const config = LINGUISTIC_DATA[lang];
-				
-				// 1. Determine Structure (Onset - Nucleus - Coda)
-				let hasOnset = true;
-				let hasCoda = false;
-
-				// Vowel Start Chance (only for first syllable)
-				if (isFirst && Math.random() < config.probabilities.vowelStart) {
-					hasOnset = false;
-				}
-
-				// Coda Chance
-				const codaChance = isLast ? config.probabilities.finalCoda : config.probabilities.coda;
-				if (Math.random() < codaChance) {
-					hasCoda = true;
-				}
-
-				// 2. Generate Syllable
-				let s = "";
-				let onsetStr = "";
-				
-				if (hasOnset) {
-					onsetStr = getWeightedItem(config.cons);
-					s += onsetStr;
-				}
-
-				// Pick vowel based on context
-				s += getValidVowel(config.vows, onsetStr, lang, isFirst);
-
-				if (hasCoda) {
-					s += getWeightedItem(config.ends);
-				}
-
-				parts.push(s);
-			}
-
-			// 3. Assemble and Clean
-			let rawWord = parts.join('');
-			let cleanedWord = cleanOrthography(rawWord);
-			
-			// Capitalize
-			cleanedWord = cleanedWord.charAt(0).toUpperCase() + cleanedWord.slice(1);
-
-			return {
-				name: cleanedWord,
-				pronunciation: parts.join('·').toLowerCase(),
-				flavor: globalStyle
-			};
-		}
 
         // --- Speech Logic ---
         let voices = [];
