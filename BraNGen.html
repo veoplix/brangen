@@ -78,7 +78,7 @@
             <span class="gradient-text">BraNGen</span>
         </h1>
         <p class="text-slate-400 text-lg">Generate completely original, pronounceable company names.</p>
-		<p class="text-slate-500 text-sm mt-2">Use English, Polish & Spanish phonetics. Compare pronunciations across three languages. Automaticaly check English dictionary availability. Search Google for existance.</p>
+		<p class="text-slate-500 text-sm mt-2">Use English, Polish, Spanish, German, French, Italian & Portuguese phonetics. Compare pronunciations across seven languages. Automaticaly check English dictionary availability. Search Google for existance.</p>
     </div>
 
     <!-- Controls -->
@@ -446,7 +446,7 @@
             const utterance = new SpeechSynthesisUtterance(text);
             
             // Try to find a high-quality voice for the specific language
-            const voiceMap = { 'en': 'en-US', 'pl': 'pl-PL', 'es': 'es-ES' };
+            const voiceMap = { 'en': 'en-US', 'pl': 'pl-PL', 'es': 'es-ES', 'de': 'de-DE', 'fr': 'fr-FR', 'it': 'it-IT', 'pt': 'pt-PT' }
             const targetLang = voiceMap[langCode];
             
             const preferredVoice = voices.find(v => v.lang.startsWith(targetLang) && v.localService) || 
@@ -484,10 +484,7 @@
             
             const leftDiv = document.createElement('div');
             
-            // Name and Speech Group
-            const nameRow = document.createElement('div');
-            nameRow.className = "flex items-center gap-3 mb-2";
-
+            // Generated Name
             const nameEl = document.createElement('h2');
             nameEl.className = "text-2xl font-bold tracking-wide cursor-pointer hover:text-indigo-400 transition-colors";
             nameEl.innerText = name;
@@ -499,30 +496,35 @@
             };
 
             // Speaker Buttons Container
-            const speakers = document.createElement('div');
-            speakers.className = "flex gap-1 bg-slate-900/50 p-1 rounded-lg border border-white/5";
-            
-            ['en', 'pl', 'es'].forEach(lang => {
+            const speakersEl = document.createElement('div');
+            speakersEl.className = "flex gap-2 bg-slate-900/50 p-1 rounded-lg border border-white/5";
+            ['en', 'pl', 'es', 'de', 'fr', 'it', 'pt'].forEach(lang => {
                 const btn = document.createElement('button');
                 btn.className = "btn-icon";
                 btn.innerHTML = `<i class="fas fa-volume-up text-xs"></i><span class="lang-tag">${lang.toUpperCase()}</span>`;
                 btn.onclick = () => speakWord(name, lang);
-                speakers.appendChild(btn);
+                speakersEl.appendChild(btn);
             });
 
-            nameRow.appendChild(nameEl);
-            nameRow.appendChild(speakers);
+            // Pronunciation
+            const pronunciationEl = document.createElement('div');
+            pronunciationEl.className = "text-sm text-slate-400 flex flex-col items-start";
+            pronunciationEl.innerHTML = `
+                <span class="font-mono text-indigo-300/80 tracking-wider">/${pronunciation}/</span>
+            `;
 
+            // Syllables and Style
             const metaEl = document.createElement('div');
             metaEl.className = "text-sm text-slate-400 flex flex-col items-start";
             metaEl.innerHTML = `
-                <span class="font-mono text-indigo-300/80 tracking-wider">/${pronunciation}/</span>
                 <span class="text-xs text-slate-500 uppercase tracking-widest flex items-center gap-2">
                     ${syllableInput.value} Syllables • <span class="text-slate-400 font-bold">${flavor.toUpperCase()} STYLE</span>
                 </span>
             `;
 
-            leftDiv.appendChild(nameRow);
+            leftDiv.appendChild(nameEl);
+            leftDiv.appendChild(pronunciationEl);
+            leftDiv.appendChild(speakersEl);
             leftDiv.appendChild(metaEl);
 
             const rightDiv = document.createElement('div');
