@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrandGen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #818cf8, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+		
+		/* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .loader {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #818cf8;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .btn-icon {
+            @apply p-1.5 rounded-md hover:bg-white/10 transition-all text-slate-400 hover:text-indigo-400 cursor-pointer flex flex-col items-center gap-0.5;
+        }
+        
+        .lang-tag {
+            font-size: 0.6rem;
+            font-weight: 700;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-10 px-4">
+
+    <!-- Header -->
+    <div class="text-center mb-8 max-w-2xl">
+        <h1 class="text-4xl md:text-5xl font-bold mb-3 tracking-tight">
+            <span class="gradient-text">BrandGen</span>
+        </h1>
+        <p class="text-slate-400 text-lg">Generate completely original, pronounceable company names.</p>
+		<p class="text-slate-500 text-sm mt-2">Use English, Polish & Spanish phonetics. Compare pronunciations across three languages. Automaticaly check English dictionary availability. Search Google for existance.</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="glass-panel p-6 rounded-2xl w-full max-w-xl mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+			<!-- Syllable Control -->
+            <div>
+                <label class="block text-slate-300 text-sm font-semibold mb-2 flex justify-between">
+                    <span>Length (Syllables)</span>
+                    <span id="syllableDisplay" class="text-indigo-400">2</span>
+                </label>
+                <input type="range" id="syllableInput" min="2" max="4" value="2" 
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+				<div class="flex justify-between text-xs text-slate-500 mt-1">
+                    <span>Short (2)</span>
+                    <span>Long (4)</span>
+                </div>
+            </div>
+
+			<!-- Count Control -->
+            <div>
+                <label class="block text-slate-300 text-sm font-semibold mb-2 flex justify-between">
+                    <span>Batch Size</span>
+                    <span id="countDisplay" class="text-indigo-400">3</span>
+                </label>
+                <input type="range" id="countInput" min="1" max="10" value="3" 
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+				<div class="flex justify-between text-xs text-slate-500 mt-1">
+                    <span>1</span>
+                    <span>10</span>
+                </div>
+            </div>
+        </div>
+
+        <button id="generateBtn" 
+            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
+            <i class="fas fa-magic"></i> Generate Ideas
+        </button>
+    </div>
+
+    <!-- Results Area -->
+    <div id="resultsGrid" class="grid grid-cols-1 w-full max-w-xl gap-4"></div>
+
+    <script>
+		const syllableInput = document.getElementById('syllableInput');
+        const countInput = document.getElementById('countInput');
+        const syllableDisplay = document.getElementById('syllableDisplay');
+        const countDisplay = document.getElementById('countDisplay');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultsGrid = document.getElementById('resultsGrid');
+
+        syllableInput.addEventListener('input', (e) => syllableDisplay.innerText = e.target.value);
+        countInput.addEventListener('input', (e) => countDisplay.innerText = e.target.value);
+		
+		/**************************************************
+		// First, preliminary word generator implementation that is now obsolete
+
+        // --- Multilingual Phonetic Data ---
+        const PHONETICS = {
+            en: {
+                cons: ['b', 'd', 'f', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'sh', 'ch', 'th', 'ph', 'qu', 'st'],
+                vows: ['a', 'e', 'i', 'o', 'u', 'y', 'ee', 'ea', 'ou', 'ai'],
+                ends: ['t', 'n', 's', 'd', 'l', 'ck', 'm', 'p']
+            },
+            pl: {
+                cons: ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'w', 'z', 'cz', 'sz', 'prz', 'rz', 'dz'],
+                vows: ['a', 'e', 'i', 'o', 'u', 'y'],
+                ends: ['k', 'm', 'n', 'z', 'j', 'w', 'c']
+            },
+            es: {
+                cons: ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'z', 'll', 'rr', 'ch', 'qu'],
+                vows: ['a', 'e', 'i', 'o', 'u'],
+                ends: ['s', 'n', 'l', 'r', 'd', 'z']
+            }
+        };
+
+        function getRandomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        function generateNameData(numSyllables) {
+            let parts = [];
+            // Determine the "flavor" of this specific word
+            const styles = ['en', 'pl', 'es', 'mix'];
+            const style = getRandomItem(styles);
+            
+            for (let i = 0; i < numSyllables; i++) {
+                const isLast = (i === numSyllables - 1);
+                const currentStyle = style === 'mix' ? getRandomItem(['en', 'pl', 'es']) : style;
+                const set = PHONETICS[currentStyle];
+                
+                let s = getRandomItem(set.cons) + getRandomItem(set.vows);
+                if (Math.random() > 0.6 || isLast) s += getRandomItem(set.ends);
+                parts.push(s);
+            }
+            
+            parts[0] = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+            return {
+                name: parts.join(''),
+                pronunciation: parts.join('·').toLowerCase(),
+                flavor: style
+            };
+        }
+		**************************************************/
+
+		/**
+		 * GENERATOR CONFIGURATION
+		 * Weights represent relative probability. 
+		 * 'cons': Onset consonants/clusters.
+		 * 'vows': Nucleus vowels.
+		 * 'ends': Coda (syllable endings).
+		 */
+		const LINGUISTIC_DATA = {
+			en: {
+				probabilities: { 
+					vowelStart: 0.10, 
+					coda: 0.60, 
+					finalCoda: 0.70 
+				},
+				cons: {
+					'b':4, 'c':4, 'd':5, 'f':4, 'g':3, 'h':4, 'j':1, 'k':3, 'l':5, 'm':4, 'n':6, 
+					'p':4, 'r':6, 's':6, 't':8, 'v':2, 'w':3, 'x':1, 'y':1, 'z':1,
+					// Clusters to create original "fantasy" feel
+					'th':4, 'sh':3, 'ch':3, 'ph':1, 'qu':1, 'wh':1, 
+					'st':3, 'str':1, 'br':2, 'cr':2, 'fl':2, 'gl':1, 'kl':1, 'dr':2
+				},
+				vows: {
+					// English allows 'y' as vowel, but we handle logic in function
+					'a':10, 'e':12, 'i':10, 'o':8, 'u':4, 'y':1,
+					'ea':2, 'ee':2, 'ai':1, 'oa':1, 'ou':1, 'au':1
+				},
+				ends: {
+					't':6, 'n':6, 's':6, 'd':5, 'l':5, 'm':3, 'r':5, 'ck':2, 'p':2, 'g':1, 
+					'th':2, 'sh':2, 'st':2, 'x':1
+				}
+			},
+			pl: {
+				// Anglicized Polish (No diacritics)
+				probabilities: { 
+					vowelStart: 0.05, // Polish rarely starts with vowels compared to consonants
+					coda: 0.50, 
+					finalCoda: 0.35 // Often ends in vowel (a, o, e)
+				},
+				cons: {
+					'b':4, 'c':3, 'd':4, 'f':2, 'g':3, 'h':2, 'j':4, 'k':5, 'l':4, 'm':4, 'n':5, 
+					'p':4, 'r':4, 's':4, 't':5, 'w':6, 'z':4, 
+					// Iconic Polish clusters
+					'cz':3, 'sz':3, 'rz':3, 'dz':2, 'prz':2, 'trz':1, 'szcz':1, 'ch':2, 'gr':1, 'kr':1
+				},
+				vows: {
+					// 'y' is common vowel in Polish (mysz, dym)
+					'a':10, 'e':9, 'i':8, 'o':9, 'u':5, 'y':6
+				},
+				ends: {
+					'k':4, 'm':4, 'n':4, 'z':3, 'j':3, 'w':2, 'sz':2, 'cz':1, 'c':2
+				}
+			},
+			es: {
+				// Spanish: Flowing, vocalic
+				probabilities: { 
+					vowelStart: 0.15, 
+					coda: 0.10, // Very low internal coda chance (makes it flowy)
+					finalCoda: 0.45 
+				},
+				cons: {
+					'b':5, 'c':6, 'd':5, 'f':3, 'g':4, 'h':2, 'j':2, 'l':5, 'm':5, 'n':7, 
+					'p':5, 'r':6, 's':6, 't':5, 'v':3, 'z':2, 
+					'll':2, 'rr':1, 'ch':2, 'qu':2, 
+					'pl':1, 'tr':1, 'gr':1
+				},
+				vows: {
+					// Spanish uses 'i' instead of 'y' for the vowel sound almost always
+					'a':12, 'e':13, 'i':8, 'o':10, 'u':4 
+				},
+				ends: {
+					's':10, 'n':9, 'l':5, 'r':6, 'd':5, 'z':2, 'm':1
+				}
+			}
+		};
+
+		// --- HELPER FUNCTIONS ---
+
+		function getRandomItem(arr) { 
+			return arr[Math.floor(Math.random() * arr.length)]; 
+		}
+
+		function getWeightedItem(weightsObj) {
+			let total = 0;
+			const keys = Object.keys(weightsObj);
+			for (let k of keys) total += weightsObj[k];
+			
+			let random = Math.floor(Math.random() * total);
+			
+			for (let k of keys) {
+				random -= weightsObj[k];
+				if (random < 0) return k;
+			}
+			return keys[0];
+		}
+
+		/**
+		 * Advanced Vowel Selector
+		 * prevents "jyi", "quu", and language-specific 'y' violations.
+		 */
+		function getValidVowel(langVowels, onset, language, isFirstSyllable) {
+			let vowel = getWeightedItem(langVowels);
+
+			// Safety loop to ensure valid combination
+			// We limit retries to avoid infinite loops, though unlikely with this data.
+			let attempts = 0;
+			let isValid = false;
+
+			while (!isValid && attempts < 10) {
+				isValid = true;
+				attempts++;
+
+				// RULE 1: The 'QU' Constraint (Universal)
+				// If onset is 'qu', vowel must not be 'u', 'o' or 'y'.
+				if (onset === 'qu' && ['u', 'o', 'y', 'ou'].includes(vowel)) {
+					isValid = false;
+				}
+
+				// RULE 2: The 'Y/J' Constraint (Universal)
+				// If onset is 'y' or 'j', avoid 'i' or 'y' immediately after.
+				// (Prevents "Jyi" or "Yy").
+				if ((onset === 'y' || onset === 'j') && (vowel === 'i' || vowel === 'y')) {
+					isValid = false;
+				}
+
+				// RULE 3: Polish 'Y' Constraint
+				// Polish words never start with 'y' (it's strictly a medial/final vowel).
+				if (language === 'pl' && isFirstSyllable && !onset && vowel === 'y') {
+					isValid = false;
+				}
+
+				// RULE 4: English 'Y' Constraint
+				// English rarely starts with 'y' as a vowel (e.g. "Yttrium" is rare).
+				// If no onset (vowel start), prefer other vowels.
+				if (language === 'en' && isFirstSyllable && !onset && vowel === 'y') {
+					isValid = false;
+				}
+
+				if (!isValid) {
+					vowel = getWeightedItem(langVowels);
+				}
+			}
+			
+			// Fallback if random generator is stubborn
+			if (!isValid) return 'a'; 
+			return vowel;
+		}
+
+		/**
+		 * Post-Processing Clean Up
+		 * Removes triple letters and smooths connections.
+		 */
+		function cleanOrthography(word) {
+			let chars = word.split('');
+			let cleaned = [];
+			
+			for (let i = 0; i < chars.length; i++) {
+				const char = chars[i];
+				const len = cleaned.length;
+				
+				// Check for triple letters (e.g., 's', 's', 's')
+				if (len >= 2 && cleaned[len-1] === char && cleaned[len-2] === char) {
+					continue; // Skip the 3rd instance
+				}
+				cleaned.push(char);
+			}
+			return cleaned.join('');
+		}
+
+		// --- MAIN GENERATOR ---
+
+		function generateNameData(numSyllables) {
+			let parts = [];
+			// Select Style
+			const styles = ['en', 'pl', 'es', 'mix'];
+			const globalStyle = getRandomItem(styles);
+
+			for (let i = 0; i < numSyllables; i++) {
+				const isLast = (i === numSyllables - 1);
+				const isFirst = (i === 0);
+				
+				// Determine Language for this syllable
+				let lang = globalStyle === 'mix' ? getRandomItem(['en', 'pl', 'es']) : globalStyle;
+				const config = LINGUISTIC_DATA[lang];
+				
+				// 1. Determine Structure (Onset - Nucleus - Coda)
+				let hasOnset = true;
+				let hasCoda = false;
+
+				// Vowel Start Chance (only for first syllable)
+				if (isFirst && Math.random() < config.probabilities.vowelStart) {
+					hasOnset = false;
+				}
+
+				// Coda Chance
+				const codaChance = isLast ? config.probabilities.finalCoda : config.probabilities.coda;
+				if (Math.random() < codaChance) {
+					hasCoda = true;
+				}
+
+				// 2. Generate Syllable
+				let s = "";
+				let onsetStr = "";
+				
+				if (hasOnset) {
+					onsetStr = getWeightedItem(config.cons);
+					s += onsetStr;
+				}
+
+				// Pick vowel based on context
+				s += getValidVowel(config.vows, onsetStr, lang, isFirst);
+
+				if (hasCoda) {
+					s += getWeightedItem(config.ends);
+				}
+
+				parts.push(s);
+			}
+
+			// 3. Assemble and Clean
+			let rawWord = parts.join('');
+			let cleanedWord = cleanOrthography(rawWord);
+			
+			// Capitalize
+			cleanedWord = cleanedWord.charAt(0).toUpperCase() + cleanedWord.slice(1);
+
+			return {
+				name: cleanedWord,
+				pronunciation: parts.join('·').toLowerCase(),
+				flavor: globalStyle
+			};
+		}
+
+        // --- Speech Logic ---
+        let voices = [];
+        function loadVoices() {
+            voices = window.speechSynthesis.getVoices();
+        }
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        function speakWord(text, langCode) {
+            window.speechSynthesis.cancel(); // Stop current speech
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Try to find a high-quality voice for the specific language
+            const voiceMap = { 'en': 'en-US', 'pl': 'pl-PL', 'es': 'es-ES' };
+            const targetLang = voiceMap[langCode];
+            
+            const preferredVoice = voices.find(v => v.lang.startsWith(targetLang) && v.localService) || 
+                                  voices.find(v => v.lang.startsWith(targetLang));
+            
+            if (preferredVoice) utterance.voice = preferredVoice;
+            utterance.lang = targetLang;
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        async function checkDictionary(word) {
+            try {
+                const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+                if (response.status === 404) {
+                    return { exists: false };
+                }
+                const data = await response.json();
+                // Extract first definition if available
+                let definition = "Exists in dictionary.";
+                if(data[0] && data[0].meanings && data[0].meanings[0] && data[0].meanings[0].definitions[0]) {
+                    definition = data[0].meanings[0].definitions[0].definition;
+                }
+                return { exists: true, definition: definition };
+            } catch (error) {
+                console.error("API Error", error);
+                return { exists: false, error: true }; // Assume original if API fails
+            }
+        }
+
+        function createResultCard(data) {
+            const { name, pronunciation, flavor } = data;
+            const card = document.createElement('div');
+            card.className = "glass-panel p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all duration-300 opacity-0 transform translate-y-4";
+            
+            const leftDiv = document.createElement('div');
+            
+            // Name and Speech Group
+            const nameRow = document.createElement('div');
+            nameRow.className = "flex items-center gap-3 mb-2";
+
+            const nameEl = document.createElement('h2');
+            nameEl.className = "text-2xl font-bold tracking-wide cursor-pointer hover:text-indigo-400 transition-colors";
+            nameEl.innerText = name;
+            nameEl.onclick = () => {
+                navigator.clipboard.writeText(name);
+                const oldText = nameEl.innerText;
+                nameEl.innerText = "Copied!";
+                setTimeout(() => nameEl.innerText = oldText, 1000);
+            };
+
+            // Speaker Buttons Container
+            const speakers = document.createElement('div');
+            speakers.className = "flex gap-1 bg-slate-900/50 p-1 rounded-lg border border-white/5";
+            
+            ['en', 'pl', 'es'].forEach(lang => {
+                const btn = document.createElement('button');
+                btn.className = "btn-icon";
+                btn.innerHTML = `<i class="fas fa-volume-up text-xs"></i><span class="lang-tag">${lang.toUpperCase()}</span>`;
+                btn.onclick = () => speakWord(name, lang);
+                speakers.appendChild(btn);
+            });
+
+            nameRow.appendChild(nameEl);
+            nameRow.appendChild(speakers);
+
+            const metaEl = document.createElement('div');
+            metaEl.className = "text-sm text-slate-400 flex flex-col items-start";
+            metaEl.innerHTML = `
+                <span class="font-mono text-indigo-300/80 tracking-wider">/${pronunciation}/</span>
+                <span class="text-xs text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    ${syllableInput.value} Syllables • <span class="text-slate-400 font-bold">${flavor.toUpperCase()} STYLE</span>
+                </span>
+            `;
+
+            leftDiv.appendChild(nameRow);
+            leftDiv.appendChild(metaEl);
+
+            const rightDiv = document.createElement('div');
+            rightDiv.className = "flex items-center gap-2 w-full md:w-auto justify-between md:justify-end";
+
+            const statusDiv = document.createElement('div');
+            statusDiv.className = "text-sm flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700";
+            statusDiv.innerHTML = `<div class="loader"></div> <span class="text-slate-400">Verifying...</span>`;
+
+            const searchBtn = document.createElement('a');
+            searchBtn.href = `https://www.google.com/search?q=${name}`;
+            searchBtn.target = "_blank";
+            searchBtn.className = "p-2 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 text-slate-400";
+            searchBtn.innerHTML = '<i class="fas fa-search"></i>';
+
+            rightDiv.appendChild(statusDiv);
+            rightDiv.appendChild(searchBtn);
+
+            card.appendChild(leftDiv);
+            card.appendChild(rightDiv);
+
+            return { card, statusDiv };
+        }
+
+        generateBtn.addEventListener('click', async () => {
+            resultsGrid.innerHTML = '';
+            const count = parseInt(countInput.value);
+            const syllables = parseInt(syllableInput.value);
+
+            for(let i=0; i<count; i++) {
+                const nameData = generateNameData(syllables);
+                const { card, statusDiv } = createResultCard(nameData);
+                resultsGrid.appendChild(card);
+                setTimeout(() => card.classList.remove('opacity-0', 'translate-y-4'), i * 80);
+
+                checkDictionary(nameData.name).then(result => {
+                    if(!result.exists) {
+                        // Success: It's an original name
+                        statusDiv.className = "text-sm flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/30 border border-emerald-500/30 text-emerald-400";
+                        statusDiv.innerHTML = `<i class="fas fa-check-circle"></i> <span>Not an English Word</span>`;
+                    } else {
+                        // Fail: It's a real word
+                        statusDiv.className = "text-sm flex flex-col items-start gap-1 px-3 py-2 rounded-lg bg-rose-900/20 border border-rose-500/30 text-rose-400 w-full md:w-auto md:max-w-xs";
+                        statusDiv.innerHTML = `
+                            <div class="flex items-center gap-2 font-bold"><i class="fas fa-exclamation-circle"></i> Real Word</div>
+                            <div class="text-xs text-rose-300/80 leading-snug italic line-clamp-2" title="${result.definition}">"${result.definition}"</div>
+                        `;
+                    }
+                });
+            }
+        });
+
+        window.onload = () => generateBtn.click();
+    </script>
+</body>
+</html>
