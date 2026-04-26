@@ -98,7 +98,7 @@
 
         /* Mood Button Styling */
         .mood-btn {
-            padding: 0.6rem;
+            padding: 0.5rem;
             border-radius: 0.65rem;
             background: #1e293b;
             border: 1px solid #334155;
@@ -491,9 +491,14 @@
             <!-- Fixed Header Section -->
             <div class="flex-none w-full max-w-2xl px-4 pt-5 pb-1 z-10 flex flex-col items-center">
                 <div class="text-center w-full">
-                    <h1 class="text-3xl md:text-4xl font-bold mb-1 tracking-tight">
-                        <span class="gradient-text">BraNGen</span>
-                    </h1>
+                    <div class="inline-flex flex-col items-end">
+                        <h1 class="text-3xl md:text-4xl font-bold mb-1 tracking-tight">
+                            <span class="gradient-text">BraNGen</span>
+                        </h1>
+                        <a href="https://veoplix.com" target="_blank" rel="noreferrer noopener" class="-mt-1 text-[0.68rem] md:text-xs font-medium tracking-[0.18em] text-slate-500 hover:text-indigo-300 transition-colors lowercase">
+                            by Veoplix
+                        </a>
+                    </div>
                     
                     <!-- Toggleable Subtitle -->
                     <button id="detailsToggle" class="group flex items-center justify-center gap-2 mx-auto text-slate-400 hover:text-indigo-300 transition-colors text-sm md:text-base focus:outline-none">
@@ -552,17 +557,17 @@
             <div class="flex-1 w-full max-w-2xl px-4 pb-6 min-h-0">
                 <div id="generateView" class="view-panel active h-full flex-col gap-0.5">
                     <!-- Controls -->
-                    <div class="glass-panel p-4 rounded-2xl w-full">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="glass-panel p-2.5 rounded-2xl w-full">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                             <!-- Syllable Control -->
                             <div>
-                                <label class="block text-slate-300 text-sm font-semibold mb-1.5 flex justify-between">
+                                <label class="block text-slate-300 text-sm font-semibold mb-0.5 flex justify-between">
                                     <span>Length</span>
                                     <span class="text-indigo-400"><span id="syllableDisplay">2</span> Syllables</span>
                                 </label>
                                 <input type="range" id="syllableInput" min="2" max="4" value="2" 
                                     class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
-                                <div class="flex justify-between text-xs text-slate-500 mt-1">
+                                <div class="flex justify-between text-xs text-slate-500 mt-0">
                                     <span>Short</span>
                                     <span>Medium</span>
                                     <span>Long</span>
@@ -571,12 +576,12 @@
 
                             <!-- Mood Selector -->
                             <div>
-                                <label class="block text-slate-300 text-sm font-semibold mb-1.5 flex justify-between">
+                                <label class="block text-slate-300 text-sm font-semibold mb-0.5 flex justify-between">
                                     <span>Mood</span>
                                     <!-- Dynamic Label: Changes color/text on hover/select -->
                                     <span id="moodDisplay" class="text-indigo-400 capitalize transition-colors duration-200">Neutral</span>
                                 </label>
-                                <div class="grid grid-cols-6 gap-1.5" id="moodContainer">
+                                <div class="grid grid-cols-6 gap-0.5" id="moodContainer">
                                     <!-- Neutral -->
                                     <button class="mood-btn active text-indigo-400" data-mood="neutral">
                                         <i class="fas fa-circle"></i>
