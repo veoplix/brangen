@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BraNGen</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
         
@@ -165,8 +165,18 @@
             transition: all 0.2s ease;
         }
 
+        .utility-btn.compact-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 0.65rem;
+        }
+
+        .utility-btn.compact-btn i {
+            font-size: 0.78rem;
+        }
+
         .result-actions {
-            gap: 0.45rem;
+            gap: 0.25rem;
             justify-content: space-between;
             align-items: center;
             width: 100%;
@@ -188,6 +198,12 @@
             justify-content: center;
             gap: 0.45rem;
             text-align: center;
+        }
+
+        .status-basic-tall {
+            height: 5rem;
+            max-height: 5rem;
+            padding: 0.6rem 0.7rem;
         }
 
         .status-basic span {
@@ -234,15 +250,18 @@
         .result-actions-right {
             display: inline-flex;
             align-items: center;
-            gap: 0.45rem;
+            gap: 0.25rem;
             justify-content: flex-end;
+            flex: 0 0 auto;
         }
 
         .result-actions-left {
             display: inline-flex;
             align-items: center;
-            gap: 0.45rem;
+            gap: 0.25rem;
             justify-content: flex-start;
+            flex: 1 1 auto;
+            min-width: 0;
         }
 
         .status-rich .status-copy::-webkit-scrollbar {
@@ -417,8 +436,22 @@
                 height: 34px;
             }
 
+            .utility-btn.compact-btn {
+                width: 26px;
+                height: 26px;
+            }
+
+            .utility-btn.compact-btn i {
+                font-size: 0.72rem;
+            }
+
             .status-basic {
                 height: 3.7rem;
+            }
+
+            .status-basic-tall {
+                height: 5rem;
+                max-height: 5rem;
             }
 
             .status-rich {
@@ -483,11 +516,13 @@
                             <div>
                                 <h3 class="text-indigo-400 font-bold mb-2"><i class="fas fa-robot mr-1"></i> Smart Features</h3>
                                 <ul class="space-y-1 opacity-80">
-                                    <li><i class="fas fa-check text-emerald-500/70 mr-1"></i> Real-time Dictionary Check</li>
+                                    <li><i class="fas fa-check text-emerald-500/70 mr-1"></i> Real-time English Dictionary Check</li>
                                     <li><i class="fas fa-volume-high text-indigo-500/70 mr-1"></i> Native Text-to-Speech</li>
                                     <li><i class="fas fa-palette text-pink-500/70 mr-1"></i> Mood-based Generation</li>
                                     <li><i class="fas fa-heart text-rose-400/70 mr-1"></i> Browser-Saved Favourite List</li>
                                     <li><i class="fas fa-pen text-amber-400/70 mr-1"></i> Manual Custom Name Creation</li>
+                                    <li><i class="fas fa-globe text-cyan-400/70 mr-1"></i> Domain Availability Shortcut</li>
+                                    <li><i class="fas fa-hashtag text-sky-400/70 mr-1"></i> Social Handle Check Links</li>
                                 </ul>
                             </div>
                         </div>
@@ -945,6 +980,14 @@
             return pronunciation || word.toLowerCase();
         }
 
+        function buildSocialHandleCandidate(word) {
+            const compactHandle = word
+                .toLowerCase()
+                .replace(/[^a-z0-9._-]+/gi, '');
+
+            return compactHandle || word.toLowerCase();
+        }
+
         function estimateSyllables(word) {
             const groups = word.toLowerCase().match(/[aeiouy]+/g);
             return Math.max(1, groups ? groups.length : 1);
@@ -1008,7 +1051,7 @@
                 if (!result.exists) {
                     statusDiv.className = 'status-slot';
                     statusDiv.innerHTML = `
-                        <div class="status-basic status-pill bg-emerald-900/30 border border-emerald-500/30 text-emerald-400">
+                        <div class="status-basic status-basic-tall status-pill bg-emerald-900/30 border border-emerald-500/30 text-emerald-400">
                             <i class="fas fa-check-circle"></i>
                             <span>Original English Word</span>
                         </div>
@@ -1497,6 +1540,7 @@
                 syllables: data.syllables || estimateSyllables(data.name),
                 source: data.source || 'generated'
             };
+            const socialHandle = buildSocialHandleCandidate(normalizedEntry.name);
 
             const card = document.createElement('div');
             card.className = 'result-card glass-panel transition-all duration-300 opacity-0 transform translate-y-4 flex-none';
@@ -1552,7 +1596,7 @@
 
             const statusDiv = document.createElement('div');
             statusDiv.className = 'status-slot';
-            statusDiv.innerHTML = '<div class="status-basic status-pill bg-slate-800 border border-slate-700 text-slate-400"><div class="loader"></div> <span class="text-slate-400">Verifying...</span></div>';
+            statusDiv.innerHTML = '<div class="status-basic status-basic-tall status-pill bg-slate-800 border border-slate-700 text-slate-400"><div class="loader"></div> <span class="text-slate-400">Verifying...</span></div>';
 
             const actionGroup = document.createElement('div');
             actionGroup.className = 'result-actions flex items-center';
@@ -1565,7 +1609,7 @@
 
             const favoriteBtn = document.createElement('button');
             favoriteBtn.type = 'button';
-            favoriteBtn.className = 'utility-btn favorite-btn inactive';
+            favoriteBtn.className = 'utility-btn compact-btn favorite-btn inactive';
             favoriteBtn.dataset.entryId = normalizedEntry.id;
             favoriteBtn.innerHTML = '<i class="fas fa-heart"></i>';
             favoriteBtn.onclick = () => toggleFavoriteEntry(normalizedEntry);
@@ -1574,7 +1618,7 @@
             searchBtn.href = `https://www.google.com/search?q=${encodeURIComponent(normalizedEntry.name)}`;
             searchBtn.target = '_blank';
             searchBtn.rel = 'noreferrer noopener';
-            searchBtn.className = 'utility-btn';
+            searchBtn.className = 'utility-btn compact-btn';
             searchBtn.innerHTML = '<i class="fas fa-search"></i>';
             searchBtn.title = 'Search the web';
 
@@ -1582,18 +1626,56 @@
             domainBtn.href = `https://www.namecheap.com/domains/registration/results/?domain=${encodeURIComponent(`${normalizedEntry.name}.com`)}`;
             domainBtn.target = '_blank';
             domainBtn.rel = 'noreferrer noopener';
-            domainBtn.className = 'utility-btn';
+            domainBtn.className = 'utility-btn compact-btn';
             domainBtn.innerHTML = '<i class="fas fa-globe"></i>';
             domainBtn.title = 'Check domain availability';
 
+            const socialPlatforms = [
+                {
+                    title: 'Check YouTube handle',
+                    iconClass: 'fa-brands fa-youtube',
+                    href: `https://www.youtube.com/@${encodeURIComponent(socialHandle)}`
+                },
+                {
+                    title: 'Check Facebook username',
+                    iconClass: 'fa-brands fa-facebook-f',
+                    href: `https://www.facebook.com/${encodeURIComponent(socialHandle)}`
+                },
+                {
+                    title: 'Check X handle',
+                    iconClass: 'fa-brands fa-x-twitter',
+                    href: `https://x.com/${encodeURIComponent(socialHandle)}`
+                },
+                {
+                    title: 'Check Instagram handle',
+                    iconClass: 'fa-brands fa-instagram',
+                    href: `https://www.instagram.com/${encodeURIComponent(socialHandle)}/`
+                },
+                {
+                    title: 'Check TikTok handle',
+                    iconClass: 'fa-brands fa-tiktok',
+                    href: `https://www.tiktok.com/@${encodeURIComponent(socialHandle)}`
+                }
+            ];
+
             actionGroupLeft.appendChild(searchBtn);
             actionGroupLeft.appendChild(domainBtn);
+            socialPlatforms.forEach(platform => {
+                const socialBtn = document.createElement('a');
+                socialBtn.href = platform.href;
+                socialBtn.target = '_blank';
+                socialBtn.rel = 'noreferrer noopener';
+                socialBtn.className = 'utility-btn compact-btn';
+                socialBtn.innerHTML = `<i class="${platform.iconClass}"></i>`;
+                socialBtn.title = platform.title;
+                actionGroupLeft.appendChild(socialBtn);
+            });
             actionGroupRight.appendChild(favoriteBtn);
 
             if (options.showDelete) {
                 const deleteBtn = document.createElement('button');
                 deleteBtn.type = 'button';
-                deleteBtn.className = 'utility-btn delete-btn';
+                deleteBtn.className = 'utility-btn compact-btn delete-btn';
                 deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
                 deleteBtn.title = 'Delete custom word';
                 deleteBtn.onclick = options.onDelete;
