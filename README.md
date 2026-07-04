@@ -252,6 +252,7 @@ It is a good fit when you want to:
 The repository for BraNGen is intentionally minimal:
 
 - `index.html`: the full application, including layout, styling, and logic
+- `README.md`: this readme file
 - `LICENSE`: project license
 
 There is no package manifest, no bundler config, and no backend service.
