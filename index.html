@@ -406,6 +406,47 @@
             box-shadow: 0 16px 30px -18px rgba(129, 140, 248, 0.9);
         }
 
+        #settingsCollapseToggle {
+            display: none;
+            margin-top: 0.1rem;
+            padding: 0.12rem;
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            line-height: 1;
+        }
+
+        body.settings-collapsible #settingsPanelWrapper {
+            overflow: hidden;
+            max-height: var(--expanded-settings-height, 1000px);
+            transition: max-height 0.24s ease, opacity 0.2s ease, padding 0.2s ease, border-color 0.2s ease;
+        }
+
+        body.settings-collapsible #settingsCollapseToggle {
+            display: inline-flex;
+        }
+
+        body.settings-collapsible.settings-collapsed #settingsPanelWrapper {
+            max-height: var(--collapsed-settings-height, 220px);
+        }
+
+        body.settings-collapsible.settings-collapsed #settingsPanelWrapper {
+            flex: 0 0 auto;
+            width: min(75vw, 20rem);
+        }
+
+        body.settings-collapsible.settings-collapsed #settingsLayoutGrid > :nth-child(n + 2) {
+            display: none;
+        }
+
+        body.settings-collapsible.settings-collapsed #settingsLayoutGrid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
         @media (max-width: 767px) {
             .result-card {
                 flex-direction: column;
@@ -477,9 +518,10 @@
             overflow: hidden;
         }
         .details-content.open {
-            max-height: 500px;
+            max-height: min(60vh, 500px);
             opacity: 1;
             margin-top: 0.75rem;
+            overflow-y: auto;
         }
         .caret-icon {
             transition: transform 0.3s ease;
@@ -491,14 +533,14 @@
 </head>
 <body class="h-screen overflow-hidden">
 
-    <div class="w-full h-full flex items-stretch justify-center gap-6 px-4 2xl:px-8">
+    <div id="appShell" class="w-full h-full flex items-stretch justify-center gap-6 px-4 2xl:px-8">
         <aside class="hidden 2xl:flex w-56 flex-none justify-end py-8">
             <div class="ad-placeholder" aria-hidden="true">Ad Space</div>
         </aside>
 
         <div class="h-full w-full max-w-3xl flex flex-col items-center">
             <!-- Fixed Header Section -->
-            <div class="flex-none w-full max-w-2xl px-4 pt-5 pb-1 z-10 flex flex-col items-center">
+            <div id="fixedHeader" class="flex-none w-full max-w-2xl px-4 pt-5 pb-1 z-10 flex flex-col items-center">
                 <div class="text-center w-full">
                     <div class="inline-flex flex-col items-end">
                         <h1 class="text-3xl md:text-4xl font-bold mb-1 tracking-tight">
@@ -563,11 +605,12 @@
             </div>
 
             <!-- View Content Area -->
-            <div class="flex-1 w-full max-w-2xl px-4 pb-6 min-h-0">
+            <div id="contentArea" class="flex-1 w-full max-w-2xl px-4 pb-6 min-h-0">
                 <div id="generateView" class="view-panel active h-full flex-col gap-0.5">
                     <!-- Controls -->
-                    <div class="glass-panel p-2.5 rounded-2xl w-full">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    <div id="settingsControlsRow" class="w-full flex items-start gap-1.5">
+                    <div id="settingsPanelWrapper" class="glass-panel p-2.5 rounded-2xl w-full flex-1 min-w-0">
+                        <div id="settingsLayoutGrid" class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                             <!-- Syllable Control -->
                             <div>
                                 <label class="block text-slate-300 text-sm font-semibold mb-0.5 flex justify-between">
@@ -619,6 +662,10 @@
                             </div>
                         </div>
                     </div>
+                    <button id="settingsCollapseToggle" type="button" aria-expanded="true" aria-label="Collapse settings" title="Collapse settings">
+                        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                    </button>
+                    </div>
 
                     <!-- Scrollable Results Area -->
                     <div id="resultsGrid" class="scroll-area flex-1 overflow-y-auto space-y-0.5 pr-1">
@@ -668,6 +715,9 @@
         const detailsToggle = document.getElementById('detailsToggle');
         const detailsContent = document.getElementById('detailsContent');
         const caretIcon = document.querySelector('.caret-icon');
+        const settingsCollapseToggle = document.getElementById('settingsCollapseToggle');
+        const settingsPanelWrapper = document.getElementById('settingsPanelWrapper');
+        const settingsLayoutGrid = document.getElementById('settingsLayoutGrid');
         const customWordInput = document.getElementById('customWordInput');
         const createCustomWordBtn = document.getElementById('createCustomWordBtn');
         const customWordsList = document.getElementById('customWordsList');
@@ -695,6 +745,11 @@
         detailsToggle.addEventListener('click', () => {
             detailsContent.classList.toggle('open');
             caretIcon.classList.toggle('open');
+            requestAnimationFrame(updateSettingsCollapsibleMode);
+        });
+
+        settingsCollapseToggle.addEventListener('click', () => {
+            setSettingsCollapsed(!document.body.classList.contains('settings-collapsed'));
         });
 
         // 1a. Description Auto-Collapse
@@ -777,6 +832,7 @@
 
         // 5. Infinite Scroll
         resultsGrid.addEventListener('scroll', () => {
+            handleSettingsAutoCollapse(resultsGrid);
             if (activeView !== 'generate') return;
 
             const { scrollTop, scrollHeight, clientHeight } = resultsGrid;
@@ -867,12 +923,111 @@
                 renderFavoriteWords();
             }
 
+            if (viewName !== 'generate') {
+                document.body.classList.remove('settings-collapsible', 'settings-collapsed');
+            }
+
             syncFavoriteButtons();
+            requestAnimationFrame(updateSettingsCollapsibleMode);
         }
 
         function collapseDetailsPanel() {
             detailsContent.classList.remove('open');
             caretIcon.classList.remove('open');
+        }
+
+        function isSettingsStacked() {
+            if (!settingsLayoutGrid || getComputedStyle(generateView).display === 'none') return true;
+
+            const layoutChildren = Array.from(settingsLayoutGrid.children);
+            if (layoutChildren.length < 2) return false;
+
+            const firstRowTop = layoutChildren[0].offsetTop;
+            return layoutChildren.slice(1).some(child => child.offsetTop > firstRowTop);
+        }
+
+        function updateSettingsLayoutColumns() {
+            if (!settingsLayoutGrid || !settingsPanelWrapper || activeView !== 'generate') return;
+
+            const controls = Array.from(settingsLayoutGrid.children);
+            if (!controls.length) return;
+
+            const panelWidth = settingsPanelWrapper.clientWidth;
+            const minControlWidth = 230;
+            const gapPx = 10;
+            const requiredWidth = (controls.length * minControlWidth) + ((controls.length - 1) * gapPx);
+
+            if (panelWidth >= requiredWidth) {
+                settingsLayoutGrid.style.gridTemplateColumns = `repeat(${controls.length}, minmax(0, 1fr))`;
+            } else {
+                settingsLayoutGrid.style.removeProperty('grid-template-columns');
+            }
+        }
+
+        function updateSettingsCollapseToggle() {
+            const isCollapsed = document.body.classList.contains('settings-collapsed');
+            const iconClass = isCollapsed ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+            settingsCollapseToggle.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i>`;
+            settingsCollapseToggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+            settingsCollapseToggle.setAttribute('aria-label', isCollapsed ? 'Expand settings' : 'Collapse settings');
+            settingsCollapseToggle.title = isCollapsed ? 'Expand settings' : 'Collapse settings';
+        }
+
+        function setSettingsCollapsed(shouldCollapse) {
+            const canCollapse = document.body.classList.contains('settings-collapsible');
+            if (!canCollapse && shouldCollapse) return;
+
+            document.body.classList.toggle('settings-collapsed', shouldCollapse);
+            updateSettingsCollapseToggle();
+        }
+
+        function updateSettingsCollapsibleMode() {
+            if (activeView !== 'generate') return;
+
+            updateSettingsLayoutColumns();
+
+            const wasCollapsible = document.body.classList.contains('settings-collapsible');
+            const wasCollapsed = document.body.classList.contains('settings-collapsed');
+
+            if (wasCollapsed) {
+                document.body.classList.remove('settings-collapsed');
+            }
+
+            const shouldEnable = isSettingsStacked();
+            document.body.classList.toggle('settings-collapsible', shouldEnable);
+
+            if (!shouldEnable) {
+                settingsPanelWrapper.style.removeProperty('--expanded-settings-height');
+                updateSettingsCollapseToggle();
+                return;
+            }
+
+            settingsPanelWrapper.style.setProperty('--expanded-settings-height', `${settingsPanelWrapper.scrollHeight}px`);
+            const firstSetting = settingsLayoutGrid ? settingsLayoutGrid.firstElementChild : null;
+            if (firstSetting) {
+                const collapsedHeight = Math.ceil(firstSetting.getBoundingClientRect().height + 20);
+                settingsPanelWrapper.style.setProperty('--collapsed-settings-height', `${collapsedHeight}px`);
+            }
+
+            if (!wasCollapsible || wasCollapsed) {
+                document.body.classList.add('settings-collapsed');
+            }
+
+            updateSettingsCollapseToggle();
+        }
+
+        function handleSettingsAutoCollapse(scrollContainer) {
+            if (!document.body.classList.contains('settings-collapsible')) return;
+            if (document.body.classList.contains('settings-collapsed')) return;
+
+            const previousScrollTop = Number(scrollContainer.dataset.prevScrollTop || '0');
+            const currentScrollTop = scrollContainer.scrollTop;
+
+            scrollContainer.dataset.prevScrollTop = String(currentScrollTop);
+
+            if (currentScrollTop > previousScrollTop + 6 && currentScrollTop > 12) {
+                setSettingsCollapsed(true);
+            }
         }
 
         function resetAndGenerate() {
@@ -1714,7 +1869,14 @@
         window.onload = () => {
             updateStorageCounters();
             resetAndGenerate();
+            requestAnimationFrame(updateSettingsCollapsibleMode);
         };
+
+        window.addEventListener('resize', updateSettingsCollapsibleMode, { passive: true });
+        window.addEventListener('orientationchange', updateSettingsCollapsibleMode);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', updateSettingsCollapsibleMode);
+        }
 
     </script>
 </body>
